@@ -14,24 +14,43 @@ namespace IntegracjaSteamProjekt
 {
     public class PlayerProfile
     {
+        private ulong steamId;
         private string playerName;
         private DateTime accountCreateDate;
-        private UserStatus playerStatus;
+        private string playerStatus;
         private string url;
-        private List<OwnedGame> ownedGames;
+        private List<OwnedGame>? ownedGames;
         private int numberOfFriends;
+        private int? totalHoursPlayed;
         /*
         private int numberOfAchivments;
         private int numberOfFriends;
         private int numberOfGames;
         */
 
+        public ulong SteamId { get => steamId; set => steamId = value; }
         public string PlayerName { get => playerName; set => playerName = value; }
         public DateTime AccountCreationDate { get => accountCreateDate; set => accountCreateDate = value; }
-        public UserStatus PlayerStatus { get => playerStatus; set => playerStatus = value; }
+        public string PlayerStatus { get => playerStatus; set => playerStatus = value; }
         public string Url { get => url; set => url = value; }
         public List<OwnedGame> OwnedGames { get => ownedGames; set => ownedGames = value; }
         public int NumberOfFriends { get => numberOfFriends; set => numberOfFriends = value; }
+
+        public int TotalHoursPlayed
+        {
+            get
+            {
+                if (ownedGames != null)
+                {
+                    totalHoursPlayed = ownedGames.Select(x => x.PlayTime).Sum();
+                }
+                else
+                {
+                    totalHoursPlayed = 0;
+                }
+                return (int)totalHoursPlayed;
+                } set => totalHoursPlayed = value; }
+        
 
 
         /*
@@ -56,9 +75,10 @@ public int NumberOfGames { get => numberOfGames; set => numberOfGames = value; }
 
             PlayerProfile profile = new PlayerProfile
             {
+                steamId = steamId,
                 playerName = playerSummaryResponse.Data.Nickname,
                 accountCreateDate = playerSummaryResponse.Data.AccountCreatedDate,
-                playerStatus = playerSummaryResponse.Data.UserStatus,
+                playerStatus = playerSummaryResponse.Data.UserStatus.ToString(),
                 url = playerSummaryResponse.Data.AvatarFullUrl,
                 //ownedGames = (List<OwnedGameModel>)aaa.Data.OwnedGames,
                 numberOfFriends = eee.Data.Count
