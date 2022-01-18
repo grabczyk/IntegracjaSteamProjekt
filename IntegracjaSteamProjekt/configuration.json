@@ -1,0 +1,31 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/ISteamUser/GetFriendList/v0001/?key=EBBFE1A1AA5EA1A9FCEE0158DC859F77&steamid={steamId}&relationship=friend",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "api.steampowered.com",
+          "Port": 443
+        },
+      ],
+      "UpstreamPathTemplate": "/gateway/steamUser/{steamId}",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/IPlayerService/GetOwnedGames/v0001/?key=XXXXXXXXXXXXXXXXX",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "http://api.steampowered.com",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/steamPlayer",
+      "UpstreamHttpMethod": [ "GET" ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:44353"
+  }
+}

@@ -8,6 +8,7 @@ namespace IntegracjaSteamProjekt
 {
     public class OwnedGame
     {
+        public uint GameId { get; set; }
         public string Name { get; set; }
         public int PlayTime { get; set; }
     }

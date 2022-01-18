@@ -12,6 +12,15 @@ using System.Text.Json;
 using System.Xml.Serialization;
 using System.IO;
 using MySql.Data.MySqlClient;
+using System.Net;
+using System.Text.RegularExpressions;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Drive.v3;
+using Google.Apis.Drive.v3.Data;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using System.Threading;
+using System.Diagnostics;
 
 namespace IntegracjaSteamProjekt
 {
@@ -37,6 +46,28 @@ namespace IntegracjaSteamProjekt
             var lista = playerProfile.OwnedGames.Select(x => x.Name).ToList();
             listBox1.DataSource = lista;
             playedHoursTextBox.Text = playerProfile.TotalHoursPlayed.ToString();
+
+            var client = new WebClient();
+            int sumaPierwotna = 0;
+            int sumaAktualna = 0;
+
+            foreach (var item in playerProfile.OwnedGames)
+            {
+                string response = client.DownloadString($@"https://store.steampowered.com/api/appdetails?appids={item.GameId}&cc=pl&l=pl");
+                Regex rx = new Regex("(?<=price_overview\":)(.*)(?=,\"packages\")");
+                response = rx.Match(response).Value;
+                if (!String.IsNullOrEmpty(response))
+                {
+                    Prices.Rootobject appDetails = JsonSerializer.Deserialize<Prices.Rootobject>(response);
+                    sumaPierwotna += appDetails.initial;
+                    sumaAktualna += appDetails.final;
+                }
+
+
+            }
+            initialGamesValueTextBox.Text = (sumaPierwotna / 100).ToString() + " PLN";
+            finalGamesValueTextBox.Text = (sumaAktualna / 100).ToString() + " PLN";
+
         }
 
         private void listBox1_SelectedValueChanged(object sender, EventArgs e)
@@ -60,7 +91,7 @@ namespace IntegracjaSteamProjekt
             {
                 xmlSerializer.Serialize(writer, playerProfile);
                 var testXML = writer.ToString();
-                File.WriteAllText("xml.xml", testXML);
+                System.IO.File.WriteAllText("xml.xml", testXML);
             }
             
         }
@@ -79,8 +110,8 @@ namespace IntegracjaSteamProjekt
             {
                 openFileDialog.ShowDialog();
                 string path = openFileDialog.FileName;
-                string json = File.ReadAllText(path);
-                playerProfile = JsonSerializer.Deserialize<PlayerProfile>(json);
+                string json = System.IO.File.ReadAllText(path);
+                playerProfile = System.Text.Json.JsonSerializer.Deserialize<PlayerProfile>(json);
             }
             userNameTextBox.Text = playerProfile.PlayerName;
             accountCreationDateTextBox.Text = playerProfile.AccountCreationDate.ToString();
@@ -108,7 +139,7 @@ namespace IntegracjaSteamProjekt
             {
                 openFileDialog.ShowDialog();
                 string path = openFileDialog.FileName;
-                string json = File.ReadAllText(path);
+                string json = System.IO.File.ReadAllText(path);
                 using (Stream stream = new FileStream(path, FileMode.Open))
                 {
                     playerProfile = (PlayerProfile)xmlSerializer.Deserialize(stream);
@@ -127,8 +158,8 @@ namespace IntegracjaSteamProjekt
 
         private void jsonExportButtonClick(object sender, EventArgs e)
         {
-            var testJSON = JsonSerializer.Serialize(playerProfile);
-            File.WriteAllText("json.json", testJSON);
+            var testJSON = System.Text.Json.JsonSerializer.Serialize(playerProfile);
+            System.IO.File.WriteAllText("json.json", testJSON);
         }
 
         private void insertToDbButton_Click(object sender, EventArgs e)
@@ -214,5 +245,48 @@ namespace IntegracjaSteamProjekt
 
 
         }
+
+        private void googleDriveButton_Click(object sender, EventArgs e)
+        {
+            string[] Scopes = { DriveService.Scope.Drive };
+            string ApplicationName = "Drive API .NET Quickstart";
+            UserCredential credential;
+
+            using (var stream =
+                new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
+            {
+                // The file token.json stores the user's access and refresh tokens, and is created
+                // automatically when the authorization flow completes for the first time.
+                string credPath = "token.json";
+                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.FromStream(stream).Secrets,
+                    Scopes,
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore(credPath, true)).Result;
+            }
+            var service = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = ApplicationName,
+            });
+
+            MemoryStream uploadStream = new MemoryStream(Encoding.ASCII.GetBytes(JsonSerializer.Serialize(playerProfile)));
+
+            Google.Apis.Drive.v3.Data.File driveFile = new Google.Apis.Drive.v3.Data.File
+            {
+                Name = "test.json"
+            };
+            // Get the media upload request object.
+            FilesResource.CreateMediaUpload insertRequest = service.Files.Create(
+                driveFile, uploadStream, "application/json");
+            insertRequest.Upload();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Process.Start(@"C:\Users\grabowiecm\source\repos\pllub\pllub\bin\Release\net5.0\pllub.exe");
+        }
+
     }
 }

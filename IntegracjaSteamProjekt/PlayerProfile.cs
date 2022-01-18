@@ -9,6 +9,7 @@ using System.Net.Http;
 using SteamWebAPI2.Interfaces;
 using Steam.Models.SteamCommunity;
 using System.Drawing;
+using System.Text.Json;
 
 namespace IntegracjaSteamProjekt
 {
@@ -93,6 +94,7 @@ public int NumberOfGames { get => numberOfGames; set => numberOfGames = value; }
                 {
                     gamesList.Add(new OwnedGame
                     {
+                        GameId = item.AppId,
                         Name = tmp.Data.GameName,
                         PlayTime = (int)Math.Round(item.PlaytimeForever.TotalHours)
                     });
