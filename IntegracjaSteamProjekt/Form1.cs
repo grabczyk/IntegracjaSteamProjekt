@@ -1,190 +1,70 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Linq;
 using System.Text.Json;
 using System.Xml.Serialization;
 using System.IO;
 using MySql.Data.MySqlClient;
-using System.Net;
-using System.Text.RegularExpressions;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
-using Google.Apis.Drive.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.Threading;
-using System.Diagnostics;
 
 namespace IntegracjaSteamProjekt
 {
     public partial class Form1 : Form
     {
-        PlayerProfile playerProfile;
+        public SynchronizationContext Context { get; set; }
+        private PlayerProfile PlayerProfile { get; set; }
+        public CancellationTokenSource SoapApiCancallationTokenSource { get; set; }
+        public CancellationTokenSource ApigatewayCancallationTokenSource { get; set; }
         public Form1()
         {
             InitializeComponent();
+            Context = SynchronizationContext.Current;
         }
 
-        private async void searchButton_Click(object sender, EventArgs e)
+        private void SetFormData()
         {
-            playerProfile = new();
-            playerProfile.SteamId = Convert.ToUInt64(steamIdTextBox.Text);
-            playerProfile = await playerProfile.DownloadData(playerProfile.SteamId);
-            userNameTextBox.Text = playerProfile.PlayerName;
-            accountCreationDateTextBox.Text = playerProfile.AccountCreationDate.ToString();
-            activityLabel.Text = playerProfile.PlayerStatus.ToString();
-            gamesNumberTextBox.Text = playerProfile.OwnedGames.Count.ToString();
-            friendsNumberTextBox.Text = playerProfile.NumberOfFriends.ToString();
-            avatarPictureBox.LoadAsync(playerProfile.Url);
-            var lista = playerProfile.OwnedGames.Select(x => x.Name).ToList();
-            listBox1.DataSource = lista;
-            playedHoursTextBox.Text = playerProfile.TotalHoursPlayed.ToString();
-
-            var client = new WebClient();
-            int sumaPierwotna = 0;
-            int sumaAktualna = 0;
-
-            foreach (var item in playerProfile.OwnedGames)
-            {
-                string response = client.DownloadString($@"https://store.steampowered.com/api/appdetails?appids={item.GameId}&cc=pl&l=pl");
-                Regex rx = new Regex("(?<=price_overview\":)(.*)(?=,\"packages\")");
-                response = rx.Match(response).Value;
-                if (!String.IsNullOrEmpty(response))
-                {
-                    Prices.Rootobject appDetails = JsonSerializer.Deserialize<Prices.Rootobject>(response);
-                    sumaPierwotna += appDetails.initial;
-                    sumaAktualna += appDetails.final;
-                }
-
-
-            }
-            initialGamesValueTextBox.Text = (sumaPierwotna / 100).ToString() + " PLN";
-            finalGamesValueTextBox.Text = (sumaAktualna / 100).ToString() + " PLN";
+            playerNameTextBox.Text = PlayerProfile.PlayerName;
+            accountCreationDateTextBox.Text = PlayerProfile.AccountCreationDate.ToString();
+            profileStatusLabel.Text = PlayerProfile.PlayerStatus.ToString();
+            numberOfOwnedGamesTextBox.Text = PlayerProfile.OwnedGames.Count.ToString();
+            numberOfFriendsTextBox.Text = PlayerProfile.NumberOfFriends.ToString();
+            avatarPictureBox.LoadAsync(PlayerProfile.Url);
+            playerOwnedGamesListBox.DataSource = PlayerProfile.OwnedGames.Select(x => x.Name).ToList();
+            totalPlayedHoursTextBox.Text = PlayerProfile.TotalHoursPlayed.ToString();
+            initialGamesValueTextBox.Text = (PlayerProfile.OwnedGamesInitialValue / 100).ToString() + " PLN";
+            finalGamesValueTextBox.Text = (PlayerProfile.OwnedGamesFinalValue / 100).ToString() + " PLN";
+        }
+        private async void SearchButton_Click(object sender, EventArgs e)
+        {
+            PlayerProfile = await PlayerProfile.LoadData(Convert.ToUInt64(steamIdTextBox.Text));
+            SetFormData();
 
         }
 
-        private void listBox1_SelectedValueChanged(object sender, EventArgs e)
+        private void InsertToDbButton_Click(object sender, EventArgs e)
         {
-            try
-            {
-                var a = listBox1.SelectedItem;
-                gameplayTimeTextBox.Text = playerProfile.OwnedGames.First(x => x.Name.Equals(a)).PlayTime.ToString();
-            }
-            catch (Exception)
-            {
-            }
-            
-        }
-
-
-        private void xmlExportButtonClick(object sender, EventArgs e)
-        {
-            XmlSerializer xmlSerializer = new(typeof(PlayerProfile));
-            using (StringWriter writer = new())
-            {
-                xmlSerializer.Serialize(writer, playerProfile);
-                var testXML = writer.ToString();
-                System.IO.File.WriteAllText("xml.xml", testXML);
-            }
-            
-        }
-
-        private void jsonImportButtonClick(object sender, EventArgs e)
-        {
-            userNameTextBox.Clear();
-            accountCreationDateTextBox.Clear();
-            activityLabel.Text = "";
-            gamesNumberTextBox.Clear();
-            friendsNumberTextBox.Clear();
-            avatarPictureBox.Image = null;
-            listBox1.DataSource = null;
-            listBox1.Items.Clear();
-            using (OpenFileDialog openFileDialog = new())
-            {
-                openFileDialog.ShowDialog();
-                string path = openFileDialog.FileName;
-                string json = System.IO.File.ReadAllText(path);
-                playerProfile = System.Text.Json.JsonSerializer.Deserialize<PlayerProfile>(json);
-            }
-            userNameTextBox.Text = playerProfile.PlayerName;
-            accountCreationDateTextBox.Text = playerProfile.AccountCreationDate.ToString();
-            activityLabel.Text = playerProfile.PlayerStatus.ToString();
-            gamesNumberTextBox.Text = playerProfile.OwnedGames.Count.ToString();
-            friendsNumberTextBox.Text = playerProfile.NumberOfFriends.ToString();
-            avatarPictureBox.LoadAsync(playerProfile.Url);
-            var lista = playerProfile.OwnedGames.Select(x => x.Name).ToList();
-            listBox1.DataSource = lista;
-            playedHoursTextBox.Text = playerProfile.TotalHoursPlayed.ToString();
-        }
-
-        private void xmlImportButtonClick(object sender, EventArgs e)
-        {
-            userNameTextBox.Clear();
-            accountCreationDateTextBox.Clear();
-            activityLabel.Text = "";
-            gamesNumberTextBox.Clear();
-            friendsNumberTextBox.Clear();
-            avatarPictureBox.Image = null;
-            listBox1.DataSource = null;
-            listBox1.Items.Clear();
-            XmlSerializer xmlSerializer = new(typeof(PlayerProfile));
-            using (OpenFileDialog openFileDialog = new())
-            {
-                openFileDialog.ShowDialog();
-                string path = openFileDialog.FileName;
-                string json = System.IO.File.ReadAllText(path);
-                using (Stream stream = new FileStream(path, FileMode.Open))
-                {
-                    playerProfile = (PlayerProfile)xmlSerializer.Deserialize(stream);
-                }
-            }
-            userNameTextBox.Text = playerProfile.PlayerName;
-            accountCreationDateTextBox.Text = playerProfile.AccountCreationDate.ToString();
-            activityLabel.Text = playerProfile.PlayerStatus.ToString();
-            gamesNumberTextBox.Text = playerProfile.OwnedGames.Count.ToString();
-            friendsNumberTextBox.Text = playerProfile.NumberOfFriends.ToString();
-            avatarPictureBox.LoadAsync(playerProfile.Url);
-            var lista = playerProfile.OwnedGames.Select(x => x.Name).ToList();
-            listBox1.DataSource = lista;
-            playedHoursTextBox.Text = playerProfile.TotalHoursPlayed.ToString();
-        }
-
-        private void jsonExportButtonClick(object sender, EventArgs e)
-        {
-            var testJSON = System.Text.Json.JsonSerializer.Serialize(playerProfile);
-            System.IO.File.WriteAllText("json.json", testJSON);
-        }
-
-        private void insertToDbButton_Click(object sender, EventArgs e)
-        {
-            string connectionString = "" +
-            "datasource=127.0.0.1;" + // adres domyślny dlaserwera lokalnego
-"port=3306;" + // domyślny port
-"username=root;" + // domyślna nazwa użytkownika który ma dostęp do bazy danych
-"password=;" + // hasło dostępowe
-"SslMode = none;"
-+ "database=integracja_steam_projekt;";
-            MySqlConnection connection = new(connectionString);
+            MySqlConnection connection = new(Variables.ConnectionString);
             connection.Open();
             MySqlCommand command;
             string query = @"INSERT INTO `player_profile` (`steam_id`, `player_name`, `account_create_date`, `player_status`, `avatar_url`, `number_of_friends`, `total_hours_played`)
                             VALUES (@steamId, @playerName, @accountCreateDate, @playerStatus, @avatarUrl, @numberOfFriends, @totalHoursPlayed)";
             command = new(query, connection);
             command.CommandTimeout = 60;
-            command.Parameters.AddWithValue("@steamId", playerProfile.SteamId.ToString());
-            command.Parameters.AddWithValue("@playerName", playerProfile.PlayerName);
-            command.Parameters.AddWithValue("@accountCreateDate", playerProfile.AccountCreationDate);
-            command.Parameters.AddWithValue("@playerStatus", playerProfile.PlayerStatus);
-            command.Parameters.AddWithValue("@avatarUrl", playerProfile.Url);
-            command.Parameters.AddWithValue("@numberOfFriends", playerProfile.NumberOfFriends);
-            command.Parameters.AddWithValue("@totalHoursPlayed", playerProfile.TotalHoursPlayed);
+            command.Parameters.AddWithValue("@steamId", PlayerProfile.SteamId.ToString());
+            command.Parameters.AddWithValue("@playerName", PlayerProfile.PlayerName);
+            command.Parameters.AddWithValue("@accountCreateDate", PlayerProfile.AccountCreationDate);
+            command.Parameters.AddWithValue("@playerStatus", PlayerProfile.PlayerStatus);
+            command.Parameters.AddWithValue("@avatarUrl", PlayerProfile.Url);
+            command.Parameters.AddWithValue("@numberOfFriends", PlayerProfile.NumberOfFriends);
+            command.Parameters.AddWithValue("@totalHoursPlayed", PlayerProfile.TotalHoursPlayed);
             command.ExecuteNonQuery();
 
             query = "SELECT LAST_INSERT_ID();";
@@ -193,7 +73,7 @@ namespace IntegracjaSteamProjekt
 
             StringBuilder sCommand = new StringBuilder("INSERT INTO `owned_games` (`game_name`, `play_time`, `raport_id`) VALUES ");
             List<string> rows = new();
-            foreach (var item in playerProfile.OwnedGames)
+            foreach (var item in PlayerProfile.OwnedGames)
             {
                 rows.Add($"('{item.Name}', '{item.PlayTime}', '{raport_id}')");
             }
@@ -209,14 +89,7 @@ namespace IntegracjaSteamProjekt
         {
             List<PlayerProfile> lista = new();
             MySqlDataReader reader;
-            string connectionString = "" +
-            "datasource=127.0.0.1;" + // adres domyślny dlaserwera lokalnego
-"port=3306;" + // domyślny port
-"username=root;" + // domyślna nazwa użytkownika który ma dostęp do bazy danych
-"password=;" + // hasło dostępowe
-"SslMode = none;"
-+ "database=integracja_steam_projekt;";
-            MySqlConnection connection = new(connectionString);
+            MySqlConnection connection = new(Variables.ConnectionString);
             connection.Open();
             MySqlCommand command;
             string query = @"SELECT `steam_id`, `player_name`, `account_create_date`, `player_status`, `avatar_url`, `number_of_friends`, `total_hours_played` FROM `player_profile`;";
@@ -271,22 +144,175 @@ namespace IntegracjaSteamProjekt
                 ApplicationName = ApplicationName,
             });
 
-            MemoryStream uploadStream = new MemoryStream(Encoding.ASCII.GetBytes(JsonSerializer.Serialize(playerProfile)));
+            MemoryStream uploadStream = new MemoryStream(Encoding.ASCII.GetBytes(JsonSerializer.Serialize(PlayerProfile)));
 
             Google.Apis.Drive.v3.Data.File driveFile = new Google.Apis.Drive.v3.Data.File
             {
                 Name = "test.json"
             };
-            // Get the media upload request object.
             FilesResource.CreateMediaUpload insertRequest = service.Files.Create(
                 driveFile, uploadStream, "application/json");
             insertRequest.Upload();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+
+        private void activityLabel_TextChanged(object sender, EventArgs e)
         {
-            Process.Start(@"C:\Users\grabowiecm\source\repos\pllub\pllub\bin\Release\net5.0\pllub.exe");
+            switch (profileStatusLabel.Text)
+            {
+                case "Offline":
+                    profileStatusLabel.BackColor = Color.Gray;
+                    break;
+                case "Online":
+                    profileStatusLabel.BackColor = Color.Green;
+                    break;
+                case "Busy":
+                case "Away":
+                case "Snooze":
+                    profileStatusLabel.BackColor = Color.Orange;
+                    break;
+                case "Unknown":
+                    profileStatusLabel.BackColor = Color.Black;
+                    break;
+                case "InGame":
+                    profileStatusLabel.BackColor = Color.Red;
+                    break;
+                default:
+                    break;
+            }
         }
 
+        private bool ExportFile(string fileType)
+        {
+            SaveFileDialog saveFileDialog = new();
+            string fileContent;
+            if (fileType == "xml")
+            {
+                saveFileDialog.Filter = "Pliki xml (*.xml)|*.xml|Wszystkie pliki (*.*)|*.*";
+                saveFileDialog.FileName = "player_profile.xml";
+                XmlSerializer xmlSerializer = new(typeof(PlayerProfile));
+                var encoding = Encoding.GetEncoding("utf-8");
+                using StringWriter writer = new();
+                xmlSerializer.Serialize(writer, PlayerProfile);
+                fileContent = writer.ToString();
+            }
+            else
+            {
+                saveFileDialog.Filter = "Pliki json (*.json)|*.json|Wszystkie pliki (*.*)|*.*";
+                saveFileDialog.FileName = "player_profile.json";
+                fileContent = JsonSerializer.Serialize(PlayerProfile);
+            }
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                System.IO.File.WriteAllText(saveFileDialog.FileName, fileContent);
+                return true;
+            }
+            return false;
+        }
+
+        private bool ImportFile(string fileType)
+        {
+            OpenFileDialog openFileDialog = new();
+            string fileContent;
+            string filePath;
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                filePath = openFileDialog.FileName;
+                fileContent = System.IO.File.ReadAllText(filePath);
+            }
+            else
+            {
+                return false;
+            }
+            if (fileType == "xml")
+            {
+                XmlSerializer xmlSerializer = new(typeof(PlayerProfile));
+                using Stream stream = new FileStream(filePath, FileMode.Open);
+                PlayerProfile = (PlayerProfile)xmlSerializer.Deserialize(stream);
+            }
+            else
+            {
+                PlayerProfile = JsonSerializer.Deserialize<PlayerProfile>(fileContent);
+            }
+            return true;
+        }
+
+        private void ExportButtonClick(object sender, EventArgs e)
+        {
+            string fileType = (sender as Button).Tag.ToString();
+            if (ExportFile(fileType))
+            {
+                MessageBox.Show($"Wyexportowano plik .{fileType}");
+            }
+        }
+
+        private void ImportButtonClick(object sender, EventArgs e)
+        {
+            string fileType = (sender as Button).Tag.ToString();
+            ClearForm();
+            if (ImportFile(fileType))
+            {
+                SetFormData();
+            }
+        }
+
+        private void ClearForm()
+        {
+            playerNameTextBox.Clear();
+            accountCreationDateTextBox.Clear();
+            profileStatusLabel.Text = "";
+            numberOfOwnedGamesTextBox.Clear();
+            numberOfFriendsTextBox.Clear();
+            avatarPictureBox.Image = null;
+            playerOwnedGamesListBox.DataSource = null;
+            playerOwnedGamesListBox.Items.Clear();
+            initialGamesValueTextBox.Clear();
+            finalGamesValueTextBox.Clear();
+        }
+
+        private void PlayerOwnedGamesListBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            object selectedItem = playerOwnedGamesListBox.SelectedItem;
+            if (selectedItem != null)
+            {
+                gameplayTimeTextBox.Text = PlayerProfile.OwnedGames.First(x => x.Name.Equals(selectedItem)).PlayTime.ToString();
+
+            }
+        }
+
+        private void SoapApiStartButton_Click(object sender, EventArgs e)
+        {
+            Api.StartStopSoapApi(5000);
+        }
+
+        private void ApigatewayStartButton_Click(object sender, EventArgs e)
+        {
+            Api.StartStopApiGateway(5100);
+        }
+
+
+        private void SoapApiStopButton_Click(object sender, EventArgs e)
+        {
+            SoapApiCancallationTokenSource.Cancel();
+            soapApiStopButton.Enabled = false;
+            soapApiStartButton.Enabled = true;
+        }
+
+        private void ApiGatewayStopButton_Click(object sender, EventArgs e)
+        {
+            ApigatewayCancallationTokenSource.Cancel();
+            apiGatewayStopButton.Enabled = false;
+            apigatewayStartButton.Enabled = true;
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (Program.SoapApiTask.Status == System.Threading.Tasks.TaskStatus.WaitingForActivation
+                || Program.ApiGatewayTask.Status == System.Threading.Tasks.TaskStatus.WaitingForActivation)
+            {
+                MessageBox.Show("Należy najpierw wyłączyć Web Serwisy!");
+                e.Cancel = true;
+            }
+        }
     }
 }

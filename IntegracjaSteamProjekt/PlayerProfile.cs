@@ -1,108 +1,107 @@
-﻿using System;
+﻿using SteamWebAPI2.Interfaces;
+using SteamWebAPI2.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SteamWebAPI2.Utilities;
-using System.Configuration;
+using System.Net;
 using System.Net.Http;
-using SteamWebAPI2.Interfaces;
-using Steam.Models.SteamCommunity;
-using System.Drawing;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace IntegracjaSteamProjekt
 {
     public class PlayerProfile
     {
-        private ulong steamId;
-        private string playerName;
-        private DateTime accountCreateDate;
-        private string playerStatus;
-        private string url;
-        private List<OwnedGame>? ownedGames;
-        private int numberOfFriends;
-        private int? totalHoursPlayed;
-        /*
-        private int numberOfAchivments;
-        private int numberOfFriends;
-        private int numberOfGames;
-        */
+        public ulong SteamId { get; set; }
+        public string PlayerName { get; set; }
+        public DateTime AccountCreationDate { get; set; }
+        public string PlayerStatus { get; set; }
+        public string Url { get; set; }
+        public List<OwnedGame> OwnedGames { get; set; }
+        public int NumberOfFriends { get; set; }
+        public int TotalHoursPlayed { get; set; }
+        public int OwnedGamesInitialValue { get; set; }
+        public int OwnedGamesFinalValue { get; set; }
 
-        public ulong SteamId { get => steamId; set => steamId = value; }
-        public string PlayerName { get => playerName; set => playerName = value; }
-        public DateTime AccountCreationDate { get => accountCreateDate; set => accountCreateDate = value; }
-        public string PlayerStatus { get => playerStatus; set => playerStatus = value; }
-        public string Url { get => url; set => url = value; }
-        public List<OwnedGame> OwnedGames { get => ownedGames; set => ownedGames = value; }
-        public int NumberOfFriends { get => numberOfFriends; set => numberOfFriends = value; }
-
-        public int TotalHoursPlayed
+          async public static Task<PlayerProfile> LoadData(ulong steamId)
         {
-            get
-            {
-                if (ownedGames != null)
-                {
-                    totalHoursPlayed = ownedGames.Select(x => x.PlayTime).Sum();
-                }
-                else
-                {
-                    totalHoursPlayed = 0;
-                }
-                return (int)totalHoursPlayed;
-                } set => totalHoursPlayed = value; }
-        
-
-
-        /*
-public int NumberOfAchivments { get => numberOfAchivments; set => numberOfAchivments = value; }
-public int NumberOfFriends { get => numberOfFriends; set => numberOfFriends = value; }
-public int NumberOfGames { get => numberOfGames; set => numberOfGames = value; }
-*/
-
-        public async Task<PlayerProfile> DownloadData(ulong steamId)
-        {
-            var webInterfaceFactory = new SteamWebInterfaceFactory("EBBFE1A1AA5EA1A9FCEE0158DC859F77");
-            var steamInterface = webInterfaceFactory.CreateSteamWebInterface<SteamUser>(new HttpClient());
+            var webInterfaceFactory = new SteamWebInterfaceFactory(Variables.ApiKey);
+            var steamUserInterface = webInterfaceFactory.CreateSteamWebInterface<SteamUser>(new HttpClient());
             var steamUserStatsInterface = webInterfaceFactory.CreateSteamWebInterface<SteamUserStats>(new HttpClient());
-            var steamPlatyerInterface = webInterfaceFactory.CreateSteamWebInterface<PlayerService>(new HttpClient());
-            var aaa = await steamPlatyerInterface.GetOwnedGamesAsync(steamId);
-            var bbb = await steamPlatyerInterface.GetRecentlyPlayedGamesAsync(steamId);
-            var ccc = await steamPlatyerInterface .GetBadgesAsync(steamId);
-            var ddd = await steamUserStatsInterface.GetUserStatsForGameAsync(steamId, 945360);
-            var eee = await steamInterface.GetFriendsListAsync(steamId);
-            var playerSummaryResponse = await steamInterface.GetPlayerSummaryAsync(steamId);
-            var dupa = await steamUserStatsInterface.GetSchemaForGameAsync(945360);
+            var steamPlatyerServiceInterface = webInterfaceFactory.CreateSteamWebInterface<PlayerService>(new HttpClient());
+            var ownedGames = await steamPlatyerServiceInterface.GetOwnedGamesAsync(steamId);
+            var friendsList = await steamUserInterface.GetFriendsListAsync(steamId);
+            var playerSummary = await steamUserInterface.GetPlayerSummaryAsync(steamId);
+            //var bbb = await steamPlatyerInterface.GetRecentlyPlayedGamesAsync(steamId);
+            //var ccc = await steamPlatyerInterface .GetBadgesAsync(steamId);
+            //var ddd = await steamUserStatsInterface.GetUserStatsForGameAsync(steamId, 945360);
+            //var dupa = await steamUserStatsInterface.GetSchemaForGameAsync(945360);
 
-            PlayerProfile profile = new PlayerProfile
+
+            List<OwnedGame> ownedGamesList = new();
+            foreach (var item in ownedGames.Data.OwnedGames)
             {
-                steamId = steamId,
-                playerName = playerSummaryResponse.Data.Nickname,
-                accountCreateDate = playerSummaryResponse.Data.AccountCreatedDate,
-                playerStatus = playerSummaryResponse.Data.UserStatus.ToString(),
-                url = playerSummaryResponse.Data.AvatarFullUrl,
-                //ownedGames = (List<OwnedGameModel>)aaa.Data.OwnedGames,
-                numberOfFriends = eee.Data.Count
-
-            };
-
-            List<OwnedGame> gamesList = new();
-            foreach (var item in aaa.Data.OwnedGames)
-            {
-                var tmp = await steamUserStatsInterface.GetSchemaForGameAsync(item.AppId);
-                if (!String.IsNullOrEmpty(tmp.Data.GameName))
+                var gameSchema = await steamUserStatsInterface.GetSchemaForGameAsync(item.AppId);
+                if (!String.IsNullOrEmpty(gameSchema.Data.GameName))
                 {
-                    gamesList.Add(new OwnedGame
+                    ownedGamesList.Add(new OwnedGame
                     {
                         GameId = item.AppId,
-                        Name = tmp.Data.GameName,
+                        Name = gameSchema.Data.GameName,
                         PlayTime = (int)Math.Round(item.PlaytimeForever.TotalHours)
                     });
                 }
                 
             }
-            profile.ownedGames = gamesList;
-            return profile;
+            int totalHoursPlayed = ownedGamesList.Select(x => x.PlayTime).Sum();
+
+            WebClient client = new();
+            int initialGamesvalue = 0;
+            int finalGamesvalue = 0;
+
+            foreach (OwnedGame item in ownedGamesList)
+            {
+                string response = await client.DownloadStringTaskAsync(new Uri($@"https://store.steampowered.com/api/appdetails?appids={item.GameId}&cc=pl&l=pl"));
+                Regex rx = new("(?<=price_overview\":)(.*)(?=,\"packages\")");
+                response = rx.Match(response).Value;
+                if (!String.IsNullOrEmpty(response))
+                {
+                    Prices.Rootobject appDetails = JsonSerializer.Deserialize<Prices.Rootobject>(response);
+                    initialGamesvalue += appDetails.initial;
+                    finalGamesvalue += appDetails.final;
+                }
+
+
+            }
+            return new(steamId,
+                    playerSummary.Data.Nickname,
+                    playerSummary.Data.AccountCreatedDate,
+                    playerSummary.Data.UserStatus.ToString(),
+                    playerSummary.Data.AvatarFullUrl,
+                    ownedGamesList,
+                    friendsList.Data.Count,
+                    totalHoursPlayed,
+                    initialGamesvalue,
+                    finalGamesvalue);
+
+        }
+        private PlayerProfile(ulong steamId, string playerName, DateTime accountCreationDate, string playerStatus, string url, List<OwnedGame> ownedGames, int numberOfFriends, int totalHoursPlayed, int ownedGamesInitialValue, int ownedGamesFinalValue)
+        {
+            SteamId = steamId;
+            PlayerName = playerName;
+            AccountCreationDate = accountCreationDate;
+            PlayerStatus = playerStatus;
+            Url = url;
+            OwnedGames = ownedGames;
+            NumberOfFriends = numberOfFriends;
+            TotalHoursPlayed = totalHoursPlayed;
+            OwnedGamesInitialValue = ownedGamesInitialValue;
+            OwnedGamesFinalValue = ownedGamesFinalValue;
+        }
+
+        public PlayerProfile()
+        {
         }
     }
 }

@@ -7,7 +7,7 @@
         {
           "Host": "api.steampowered.com",
           "Port": 443
-        },
+        }
       ],
       "UpstreamPathTemplate": "/gateway/steamUser/{steamId}",
       "UpstreamHttpMethod": [ "GET" ]

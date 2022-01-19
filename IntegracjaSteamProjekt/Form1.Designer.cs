@@ -31,7 +31,12 @@ namespace IntegracjaSteamProjekt
         {
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.button1 = new System.Windows.Forms.Button();
+            this.apiGatewayStateLabel = new System.Windows.Forms.Label();
+            this.soapApiStateLabel = new System.Windows.Forms.Label();
+            this.apiGatewayStopButton = new System.Windows.Forms.Button();
+            this.soapApiStopButton = new System.Windows.Forms.Button();
+            this.apigatewayStartButton = new System.Windows.Forms.Button();
+            this.soapApiStartButton = new System.Windows.Forms.Button();
             this.googleDriveButton = new System.Windows.Forms.Button();
             this.initialGamesValueTextBox = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
@@ -40,13 +45,13 @@ namespace IntegracjaSteamProjekt
             this.insertToDbButton = new System.Windows.Forms.Button();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.playedHoursTextBox = new System.Windows.Forms.TextBox();
-            this.button5 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.totalPlayedHoursTextBox = new System.Windows.Forms.TextBox();
+            this.xmlImportButton = new System.Windows.Forms.Button();
+            this.jsonImportButton = new System.Windows.Forms.Button();
+            this.xmlExportButton = new System.Windows.Forms.Button();
+            this.jsonExportButton = new System.Windows.Forms.Button();
             this.gameplayTimeTextBox = new System.Windows.Forms.TextBox();
-            this.listBox1 = new System.Windows.Forms.ListBox();
+            this.playerOwnedGamesListBox = new System.Windows.Forms.ListBox();
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -54,11 +59,11 @@ namespace IntegracjaSteamProjekt
             this.label1 = new System.Windows.Forms.Label();
             this.searchButton = new System.Windows.Forms.Button();
             this.steamIdTextBox = new System.Windows.Forms.TextBox();
-            this.activityLabel = new System.Windows.Forms.Label();
-            this.friendsNumberTextBox = new System.Windows.Forms.TextBox();
-            this.gamesNumberTextBox = new System.Windows.Forms.TextBox();
+            this.profileStatusLabel = new System.Windows.Forms.Label();
+            this.numberOfFriendsTextBox = new System.Windows.Forms.TextBox();
+            this.numberOfOwnedGamesTextBox = new System.Windows.Forms.TextBox();
             this.accountCreationDateTextBox = new System.Windows.Forms.TextBox();
-            this.userNameTextBox = new System.Windows.Forms.TextBox();
+            this.playerNameTextBox = new System.Windows.Forms.TextBox();
             this.avatarPictureBox = new System.Windows.Forms.PictureBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.downloadFromDatabaseButton = new System.Windows.Forms.Button();
@@ -82,7 +87,12 @@ namespace IntegracjaSteamProjekt
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.button1);
+            this.tabPage1.Controls.Add(this.apiGatewayStateLabel);
+            this.tabPage1.Controls.Add(this.soapApiStateLabel);
+            this.tabPage1.Controls.Add(this.apiGatewayStopButton);
+            this.tabPage1.Controls.Add(this.soapApiStopButton);
+            this.tabPage1.Controls.Add(this.apigatewayStartButton);
+            this.tabPage1.Controls.Add(this.soapApiStartButton);
             this.tabPage1.Controls.Add(this.googleDriveButton);
             this.tabPage1.Controls.Add(this.initialGamesValueTextBox);
             this.tabPage1.Controls.Add(this.label9);
@@ -91,13 +101,13 @@ namespace IntegracjaSteamProjekt
             this.tabPage1.Controls.Add(this.insertToDbButton);
             this.tabPage1.Controls.Add(this.label7);
             this.tabPage1.Controls.Add(this.label6);
-            this.tabPage1.Controls.Add(this.playedHoursTextBox);
-            this.tabPage1.Controls.Add(this.button5);
-            this.tabPage1.Controls.Add(this.button4);
-            this.tabPage1.Controls.Add(this.button3);
-            this.tabPage1.Controls.Add(this.button2);
+            this.tabPage1.Controls.Add(this.totalPlayedHoursTextBox);
+            this.tabPage1.Controls.Add(this.xmlImportButton);
+            this.tabPage1.Controls.Add(this.jsonImportButton);
+            this.tabPage1.Controls.Add(this.xmlExportButton);
+            this.tabPage1.Controls.Add(this.jsonExportButton);
             this.tabPage1.Controls.Add(this.gameplayTimeTextBox);
-            this.tabPage1.Controls.Add(this.listBox1);
+            this.tabPage1.Controls.Add(this.playerOwnedGamesListBox);
             this.tabPage1.Controls.Add(this.label5);
             this.tabPage1.Controls.Add(this.label4);
             this.tabPage1.Controls.Add(this.label3);
@@ -105,11 +115,11 @@ namespace IntegracjaSteamProjekt
             this.tabPage1.Controls.Add(this.label1);
             this.tabPage1.Controls.Add(this.searchButton);
             this.tabPage1.Controls.Add(this.steamIdTextBox);
-            this.tabPage1.Controls.Add(this.activityLabel);
-            this.tabPage1.Controls.Add(this.friendsNumberTextBox);
-            this.tabPage1.Controls.Add(this.gamesNumberTextBox);
+            this.tabPage1.Controls.Add(this.profileStatusLabel);
+            this.tabPage1.Controls.Add(this.numberOfFriendsTextBox);
+            this.tabPage1.Controls.Add(this.numberOfOwnedGamesTextBox);
             this.tabPage1.Controls.Add(this.accountCreationDateTextBox);
-            this.tabPage1.Controls.Add(this.userNameTextBox);
+            this.tabPage1.Controls.Add(this.playerNameTextBox);
             this.tabPage1.Controls.Add(this.avatarPictureBox);
             this.tabPage1.Location = new System.Drawing.Point(4, 24);
             this.tabPage1.Name = "tabPage1";
@@ -119,15 +129,68 @@ namespace IntegracjaSteamProjekt
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // button1
+            // apiGatewayStateLabel
             // 
-            this.button1.Location = new System.Drawing.Point(735, 392);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 32;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.apiGatewayStateLabel.AutoSize = true;
+            this.apiGatewayStateLabel.BackColor = System.Drawing.Color.Red;
+            this.apiGatewayStateLabel.Location = new System.Drawing.Point(384, 252);
+            this.apiGatewayStateLabel.Name = "apiGatewayStateLabel";
+            this.apiGatewayStateLabel.Size = new System.Drawing.Size(72, 15);
+            this.apiGatewayStateLabel.TabIndex = 37;
+            this.apiGatewayStateLabel.Text = "Not running";
+            // 
+            // soapApiStateLabel
+            // 
+            this.soapApiStateLabel.AutoSize = true;
+            this.soapApiStateLabel.BackColor = System.Drawing.Color.Red;
+            this.soapApiStateLabel.Location = new System.Drawing.Point(276, 252);
+            this.soapApiStateLabel.Name = "soapApiStateLabel";
+            this.soapApiStateLabel.Size = new System.Drawing.Size(72, 15);
+            this.soapApiStateLabel.TabIndex = 36;
+            this.soapApiStateLabel.Text = "Not running";
+            // 
+            // apiGatewayStopButton
+            // 
+            this.apiGatewayStopButton.Enabled = false;
+            this.apiGatewayStopButton.Location = new System.Drawing.Point(365, 334);
+            this.apiGatewayStopButton.Name = "apiGatewayStopButton";
+            this.apiGatewayStopButton.Size = new System.Drawing.Size(109, 40);
+            this.apiGatewayStopButton.TabIndex = 35;
+            this.apiGatewayStopButton.Text = "Api gateway stop";
+            this.apiGatewayStopButton.UseVisualStyleBackColor = true;
+            this.apiGatewayStopButton.Click += new System.EventHandler(this.ApiGatewayStopButton_Click);
+            // 
+            // soapApiStopButton
+            // 
+            this.soapApiStopButton.Enabled = false;
+            this.soapApiStopButton.Location = new System.Drawing.Point(257, 318);
+            this.soapApiStopButton.Name = "soapApiStopButton";
+            this.soapApiStopButton.Size = new System.Drawing.Size(102, 24);
+            this.soapApiStopButton.TabIndex = 34;
+            this.soapApiStopButton.Text = "Soap api stop";
+            this.soapApiStopButton.UseVisualStyleBackColor = true;
+            this.soapApiStopButton.Click += new System.EventHandler(this.SoapApiStopButton_Click);
+            // 
+            // apigatewayStartButton
+            // 
+            this.apigatewayStartButton.Location = new System.Drawing.Point(365, 288);
+            this.apigatewayStartButton.Name = "apigatewayStartButton";
+            this.apigatewayStartButton.Size = new System.Drawing.Size(109, 40);
+            this.apigatewayStartButton.TabIndex = 33;
+            this.apigatewayStartButton.Text = "Api gateway start";
+            this.apigatewayStartButton.UseVisualStyleBackColor = true;
+            this.apigatewayStartButton.Click += new System.EventHandler(this.ApigatewayStartButton_Click);
+            // 
+            // soapApiStartButton
+            // 
+            this.soapApiStartButton.Cursor = System.Windows.Forms.Cursors.Default;
+            this.soapApiStartButton.Location = new System.Drawing.Point(257, 288);
+            this.soapApiStartButton.Name = "soapApiStartButton";
+            this.soapApiStartButton.Size = new System.Drawing.Size(102, 23);
+            this.soapApiStartButton.TabIndex = 32;
+            this.soapApiStartButton.Text = "Soap api start";
+            this.soapApiStartButton.UseVisualStyleBackColor = true;
+            this.soapApiStartButton.Click += new System.EventHandler(this.SoapApiStartButton_Click);
             // 
             // googleDriveButton
             // 
@@ -179,7 +242,7 @@ namespace IntegracjaSteamProjekt
             this.insertToDbButton.TabIndex = 26;
             this.insertToDbButton.Text = "Dodaj do bazy";
             this.insertToDbButton.UseVisualStyleBackColor = true;
-            this.insertToDbButton.Click += new System.EventHandler(this.insertToDbButton_Click);
+            this.insertToDbButton.Click += new System.EventHandler(this.InsertToDbButton_Click);
             // 
             // label7
             // 
@@ -193,58 +256,62 @@ namespace IntegracjaSteamProjekt
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(200, 139);
+            this.label6.Location = new System.Drawing.Point(198, 130);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(160, 15);
+            this.label6.Size = new System.Drawing.Size(163, 15);
             this.label6.TabIndex = 24;
-            this.label6.Text = "Łączna liczba godzin w grach";
+            this.label6.Text = "Łączna liczba godzin w grach:";
             // 
-            // playedHoursTextBox
+            // totalPlayedHoursTextBox
             // 
-            this.playedHoursTextBox.Location = new System.Drawing.Point(366, 135);
-            this.playedHoursTextBox.Name = "playedHoursTextBox";
-            this.playedHoursTextBox.Size = new System.Drawing.Size(169, 23);
-            this.playedHoursTextBox.TabIndex = 23;
+            this.totalPlayedHoursTextBox.Location = new System.Drawing.Point(373, 122);
+            this.totalPlayedHoursTextBox.Name = "totalPlayedHoursTextBox";
+            this.totalPlayedHoursTextBox.Size = new System.Drawing.Size(169, 23);
+            this.totalPlayedHoursTextBox.TabIndex = 23;
             // 
-            // button5
+            // xmlImportButton
             // 
-            this.button5.Location = new System.Drawing.Point(411, 381);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(179, 74);
-            this.button5.TabIndex = 22;
-            this.button5.Text = "xmlImport";
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.xmlImportButtonClick);
+            this.xmlImportButton.Location = new System.Drawing.Point(141, 270);
+            this.xmlImportButton.Name = "xmlImportButton";
+            this.xmlImportButton.Size = new System.Drawing.Size(88, 21);
+            this.xmlImportButton.TabIndex = 22;
+            this.xmlImportButton.Tag = "xml";
+            this.xmlImportButton.Text = "xmlImport";
+            this.xmlImportButton.UseVisualStyleBackColor = true;
+            this.xmlImportButton.Click += new System.EventHandler(this.ImportButtonClick);
             // 
-            // button4
+            // jsonImportButton
             // 
-            this.button4.Location = new System.Drawing.Point(342, 262);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(136, 59);
-            this.button4.TabIndex = 21;
-            this.button4.Text = "jsonImport";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.jsonImportButtonClick);
+            this.jsonImportButton.Location = new System.Drawing.Point(141, 240);
+            this.jsonImportButton.Name = "jsonImportButton";
+            this.jsonImportButton.Size = new System.Drawing.Size(88, 24);
+            this.jsonImportButton.TabIndex = 21;
+            this.jsonImportButton.Tag = "json";
+            this.jsonImportButton.Text = "Import JSON";
+            this.jsonImportButton.UseVisualStyleBackColor = true;
+            this.jsonImportButton.Click += new System.EventHandler(this.ImportButtonClick);
             // 
-            // button3
+            // xmlExportButton
             // 
-            this.button3.Location = new System.Drawing.Point(14, 362);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(357, 112);
-            this.button3.TabIndex = 20;
-            this.button3.Text = "XML!";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.xmlExportButtonClick);
+            this.xmlExportButton.Location = new System.Drawing.Point(14, 270);
+            this.xmlExportButton.Name = "xmlExportButton";
+            this.xmlExportButton.Size = new System.Drawing.Size(88, 21);
+            this.xmlExportButton.TabIndex = 20;
+            this.xmlExportButton.Tag = "xml";
+            this.xmlExportButton.Text = "Export XML";
+            this.xmlExportButton.UseVisualStyleBackColor = true;
+            this.xmlExportButton.Click += new System.EventHandler(this.ExportButtonClick);
             // 
-            // button2
+            // jsonExportButton
             // 
-            this.button2.Location = new System.Drawing.Point(14, 240);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(250, 103);
-            this.button2.TabIndex = 19;
-            this.button2.Text = "jsonExportButton";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.jsonExportButtonClick);
+            this.jsonExportButton.Location = new System.Drawing.Point(14, 240);
+            this.jsonExportButton.Name = "jsonExportButton";
+            this.jsonExportButton.Size = new System.Drawing.Size(88, 24);
+            this.jsonExportButton.TabIndex = 19;
+            this.jsonExportButton.Tag = "json";
+            this.jsonExportButton.Text = "Export JSON";
+            this.jsonExportButton.UseVisualStyleBackColor = true;
+            this.jsonExportButton.Click += new System.EventHandler(this.ExportButtonClick);
             // 
             // gameplayTimeTextBox
             // 
@@ -253,20 +320,20 @@ namespace IntegracjaSteamProjekt
             this.gameplayTimeTextBox.Size = new System.Drawing.Size(84, 23);
             this.gameplayTimeTextBox.TabIndex = 18;
             // 
-            // listBox1
+            // playerOwnedGamesListBox
             // 
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.ItemHeight = 15;
-            this.listBox1.Location = new System.Drawing.Point(704, 119);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(352, 94);
-            this.listBox1.TabIndex = 16;
-            this.listBox1.SelectedValueChanged += new System.EventHandler(this.listBox1_SelectedValueChanged);
+            this.playerOwnedGamesListBox.FormattingEnabled = true;
+            this.playerOwnedGamesListBox.ItemHeight = 15;
+            this.playerOwnedGamesListBox.Location = new System.Drawing.Point(704, 119);
+            this.playerOwnedGamesListBox.Name = "playerOwnedGamesListBox";
+            this.playerOwnedGamesListBox.Size = new System.Drawing.Size(352, 94);
+            this.playerOwnedGamesListBox.TabIndex = 16;
+            this.playerOwnedGamesListBox.SelectedValueChanged += new System.EventHandler(this.PlayerOwnedGamesListBox_SelectedValueChanged);
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(222, 175);
+            this.label5.Location = new System.Drawing.Point(200, 157);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(42, 15);
             this.label5.TabIndex = 14;
@@ -275,7 +342,7 @@ namespace IntegracjaSteamProjekt
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(200, 106);
+            this.label4.Location = new System.Drawing.Point(200, 101);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(95, 15);
             this.label4.TabIndex = 13;
@@ -284,7 +351,7 @@ namespace IntegracjaSteamProjekt
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(200, 77);
+            this.label3.Location = new System.Drawing.Point(198, 72);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(136, 15);
             this.label3.TabIndex = 12;
@@ -293,7 +360,7 @@ namespace IntegracjaSteamProjekt
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(198, 35);
+            this.label2.Location = new System.Drawing.Point(198, 43);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(128, 15);
             this.label2.TabIndex = 11;
@@ -302,7 +369,7 @@ namespace IntegracjaSteamProjekt
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(200, 9);
+            this.label1.Location = new System.Drawing.Point(198, 14);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(114, 15);
             this.label1.TabIndex = 10;
@@ -316,7 +383,7 @@ namespace IntegracjaSteamProjekt
             this.searchButton.TabIndex = 9;
             this.searchButton.Text = "Szukaj";
             this.searchButton.UseVisualStyleBackColor = true;
-            this.searchButton.Click += new System.EventHandler(this.searchButton_Click);
+            this.searchButton.Click += new System.EventHandler(this.SearchButton_Click);
             // 
             // steamIdTextBox
             // 
@@ -326,42 +393,43 @@ namespace IntegracjaSteamProjekt
             this.steamIdTextBox.TabIndex = 8;
             this.steamIdTextBox.Text = "76561198182526571";
             // 
-            // activityLabel
+            // profileStatusLabel
             // 
-            this.activityLabel.AutoSize = true;
-            this.activityLabel.Location = new System.Drawing.Point(342, 175);
-            this.activityLabel.Name = "activityLabel";
-            this.activityLabel.Size = new System.Drawing.Size(38, 15);
-            this.activityLabel.TabIndex = 6;
-            this.activityLabel.Text = "label1";
+            this.profileStatusLabel.AutoSize = true;
+            this.profileStatusLabel.Location = new System.Drawing.Point(257, 157);
+            this.profileStatusLabel.Name = "profileStatusLabel";
+            this.profileStatusLabel.Size = new System.Drawing.Size(38, 15);
+            this.profileStatusLabel.TabIndex = 6;
+            this.profileStatusLabel.Text = "label1";
+            this.profileStatusLabel.TextChanged += new System.EventHandler(this.activityLabel_TextChanged);
             // 
-            // friendsNumberTextBox
+            // numberOfFriendsTextBox
             // 
-            this.friendsNumberTextBox.Location = new System.Drawing.Point(342, 106);
-            this.friendsNumberTextBox.Name = "friendsNumberTextBox";
-            this.friendsNumberTextBox.Size = new System.Drawing.Size(169, 23);
-            this.friendsNumberTextBox.TabIndex = 5;
+            this.numberOfFriendsTextBox.Location = new System.Drawing.Point(373, 93);
+            this.numberOfFriendsTextBox.Name = "numberOfFriendsTextBox";
+            this.numberOfFriendsTextBox.Size = new System.Drawing.Size(169, 23);
+            this.numberOfFriendsTextBox.TabIndex = 5;
             // 
-            // gamesNumberTextBox
+            // numberOfOwnedGamesTextBox
             // 
-            this.gamesNumberTextBox.Location = new System.Drawing.Point(342, 77);
-            this.gamesNumberTextBox.Name = "gamesNumberTextBox";
-            this.gamesNumberTextBox.Size = new System.Drawing.Size(169, 23);
-            this.gamesNumberTextBox.TabIndex = 4;
+            this.numberOfOwnedGamesTextBox.Location = new System.Drawing.Point(373, 64);
+            this.numberOfOwnedGamesTextBox.Name = "numberOfOwnedGamesTextBox";
+            this.numberOfOwnedGamesTextBox.Size = new System.Drawing.Size(169, 23);
+            this.numberOfOwnedGamesTextBox.TabIndex = 4;
             // 
             // accountCreationDateTextBox
             // 
-            this.accountCreationDateTextBox.Location = new System.Drawing.Point(342, 35);
+            this.accountCreationDateTextBox.Location = new System.Drawing.Point(373, 35);
             this.accountCreationDateTextBox.Name = "accountCreationDateTextBox";
             this.accountCreationDateTextBox.Size = new System.Drawing.Size(169, 23);
             this.accountCreationDateTextBox.TabIndex = 3;
             // 
-            // userNameTextBox
+            // playerNameTextBox
             // 
-            this.userNameTextBox.Location = new System.Drawing.Point(342, 6);
-            this.userNameTextBox.Name = "userNameTextBox";
-            this.userNameTextBox.Size = new System.Drawing.Size(169, 23);
-            this.userNameTextBox.TabIndex = 1;
+            this.playerNameTextBox.Location = new System.Drawing.Point(373, 6);
+            this.playerNameTextBox.Name = "playerNameTextBox";
+            this.playerNameTextBox.Size = new System.Drawing.Size(169, 23);
+            this.playerNameTextBox.TabIndex = 1;
             // 
             // avatarPictureBox
             // 
@@ -411,6 +479,7 @@ namespace IntegracjaSteamProjekt
             this.Controls.Add(this.tabControl1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
@@ -425,11 +494,11 @@ namespace IntegracjaSteamProjekt
 
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.Label activityLabel;
-        private System.Windows.Forms.TextBox friendsNumberTextBox;
-        private System.Windows.Forms.TextBox gamesNumberTextBox;
+        private System.Windows.Forms.Label profileStatusLabel;
+        private System.Windows.Forms.TextBox numberOfFriendsTextBox;
+        private System.Windows.Forms.TextBox numberOfOwnedGamesTextBox;
         private System.Windows.Forms.TextBox accountCreationDateTextBox;
-        private System.Windows.Forms.TextBox userNameTextBox;
+        private System.Windows.Forms.TextBox playerNameTextBox;
         private System.Windows.Forms.PictureBox avatarPictureBox;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.Button searchButton;
@@ -438,14 +507,14 @@ namespace IntegracjaSteamProjekt
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.ListBox listBox1;
+        private System.Windows.Forms.ListBox playerOwnedGamesListBox;
         private System.Windows.Forms.TextBox gameplayTimeTextBox;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button5;
-        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button jsonExportButton;
+        private System.Windows.Forms.Button xmlExportButton;
+        private System.Windows.Forms.Button xmlImportButton;
+        private System.Windows.Forms.Button jsonImportButton;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox playedHoursTextBox;
+        private System.Windows.Forms.TextBox totalPlayedHoursTextBox;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Button insertToDbButton;
         private System.Windows.Forms.Button downloadFromDatabaseButton;
@@ -456,7 +525,12 @@ namespace IntegracjaSteamProjekt
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Button googleDriveButton;
         public System.Windows.Forms.TextBox steamIdTextBox;
-        private System.Windows.Forms.Button button1;
+        public System.Windows.Forms.Label soapApiStateLabel;
+        public System.Windows.Forms.Label apiGatewayStateLabel;
+        public System.Windows.Forms.Button soapApiStartButton;
+        public System.Windows.Forms.Button apigatewayStartButton;
+        public System.Windows.Forms.Button soapApiStopButton;
+        public System.Windows.Forms.Button apiGatewayStopButton;
     }
 }
 

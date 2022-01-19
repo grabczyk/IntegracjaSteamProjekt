@@ -12,49 +12,21 @@ namespace IntegracjaSteamProjekt
 {
     static class Program
     {
+        public static  Task SoapApiTask { get; set; }
+        public static Task ApiGatewayTask { get; set; }
+        public static Form1 Form { get; set; }
 
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(string[] args)
-        {
-
+        static void Main()
+        {            
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-            Task task1 = Task.Run(CreateHostBuilder(args, 5000, false).Build().Run);
-            Task task2 = Task.Run(CreateHostBuilder(args, 5200, false).Build().Run);
-            Task task3 = Task.Run(CreateHostBuilder(args, 5300, true).Build().Run);
-            Application.Run(new Form1());
-        }
-
-        public static IHostBuilder CreateHostBuilder(string[] args, int port, bool gatewayFlag)
-        {
-            IHostBuilder host;
-            if (gatewayFlag)
-            {
-                host = Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<StartupGateway>()
-                    .UseUrls($"http://localhost:{port}/");
-                });
-                host.ConfigureAppConfiguration((hostingContext, config) =>
-                {
-                    config.AddJsonFile("configuration.json");
-                });
-            }
-            else {
-                host = Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>()
-                    .UseUrls($"http://localhost:{port}/");
-                });
-            }
-            return host;
+            Form = new();
+            Application.Run(Form);
         }
     }
 }
