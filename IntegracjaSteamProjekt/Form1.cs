@@ -150,9 +150,26 @@ namespace IntegracjaSteamProjekt
             {
                 Name = "test.json"
             };
-            FilesResource.CreateMediaUpload insertRequest = service.Files.Create(
+            FilesResource.CreateMediaUpload insertRequest = service.Files.Create (
                 driveFile, uploadStream, "application/json");
+            var a = service.Files.List().Execute();
+            // var b = service.Files.Get(a.Files[0].Id).Execute();
+            if (a.Files.Count > 0)
+            {
+                foreach (var item in a.Files)
+                {
+                    service.Files.Delete(item.Id).Execute();
+                }
+            }
             insertRequest.Upload();
+            a = service.Files.List().Execute();
+            Google.Apis.Drive.v3.Data.Permission permission = new();
+            permission.Role = "reader";
+            permission.Type = "anyone";
+            service.Permissions.Create(permission, a.Files[0].Id).Execute();
+            a = service.Files.List().Execute();
+            Clipboard.SetText($"https://drive.google.com/file/d/{a.Files[0].Id}/view?usp=sharing");
+
         }
 
 
