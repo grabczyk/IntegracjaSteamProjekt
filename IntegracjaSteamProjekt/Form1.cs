@@ -273,7 +273,7 @@ namespace IntegracjaSteamProjekt
         private void PlayerOwnedGamesListBox_SelectedValueChanged(object sender, EventArgs e)
         {
             object selectedItem = playerOwnedGamesListBox.SelectedItem;
-            if (selectedItem != null)
+            if (selectedItem is not null)
             {
                 gameplayTimeTextBox.Text = PlayerProfile.OwnedGames.First(x => x.Name.Equals(selectedItem)).PlayTime.ToString();
 
@@ -307,8 +307,8 @@ namespace IntegracjaSteamProjekt
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (Program.SoapApiTask.Status == System.Threading.Tasks.TaskStatus.WaitingForActivation
-                || Program.ApiGatewayTask.Status == System.Threading.Tasks.TaskStatus.WaitingForActivation)
+
+            if (Program.SoapApiTask is not null || Program.ApiGatewayTask is not null)
             {
                 MessageBox.Show("Należy najpierw wyłączyć Web Serwisy!");
                 e.Cancel = true;

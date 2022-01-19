@@ -67,6 +67,7 @@ namespace IntegracjaSteamProjekt
                         }, null);
                         running = false;
                         soapApiHost.Dispose();
+                        Program.SoapApiTask = null;
                     }
                 }
             });
@@ -101,6 +102,7 @@ namespace IntegracjaSteamProjekt
                         },null);
                         running = false;
                         apiGatewayHost.Dispose();
+                        Program.ApiGatewayTask = null;
                     }
                 }
             });

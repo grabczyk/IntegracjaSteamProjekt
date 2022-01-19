@@ -8,7 +8,7 @@ namespace IntegracjaSteamProjekt
         {
             get
             {
-                return ConfigurationManager.AppSettings["steamApikey"];
+                return ConfigurationManager.AppSettings["steamApiKey"];
             }
         }
 
