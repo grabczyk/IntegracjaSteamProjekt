@@ -1,4 +1,5 @@
-﻿using SteamWebAPI2.Interfaces;
+﻿using MySql.Data.MySqlClient;
+using SteamWebAPI2.Interfaces;
 using SteamWebAPI2.Utilities;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace IntegracjaSteamProjekt
         public int OwnedGamesInitialValue { get; set; }
         public int OwnedGamesFinalValue { get; set; }
 
-          async public static Task<PlayerProfile> LoadData(ulong steamId)
+          async public static Task<PlayerProfile> LoadDataAsync(ulong steamId)
         {
             var webInterfaceFactory = new SteamWebInterfaceFactory(Variables.ApiKey);
             var steamUserInterface = webInterfaceFactory.CreateSteamWebInterface<SteamUser>(new HttpClient());
@@ -33,26 +34,22 @@ namespace IntegracjaSteamProjekt
             var ownedGames = await steamPlatyerServiceInterface.GetOwnedGamesAsync(steamId);
             var friendsList = await steamUserInterface.GetFriendsListAsync(steamId);
             var playerSummary = await steamUserInterface.GetPlayerSummaryAsync(steamId);
-            //var bbb = await steamPlatyerInterface.GetRecentlyPlayedGamesAsync(steamId);
-            //var ccc = await steamPlatyerInterface .GetBadgesAsync(steamId);
-            //var ddd = await steamUserStatsInterface.GetUserStatsForGameAsync(steamId, 945360);
-            //var dupa = await steamUserStatsInterface.GetSchemaForGameAsync(945360);
 
 
             List<OwnedGame> ownedGamesList = new();
             foreach (var item in ownedGames.Data.OwnedGames)
             {
-                var gameSchema = await steamUserStatsInterface.GetSchemaForGameAsync(item.AppId);
-                if (!String.IsNullOrEmpty(gameSchema.Data.GameName))
+                var (name, description) = await GetAppDetailsAsync(item.AppId);
+                if (!String.IsNullOrEmpty(name))
                 {
                     ownedGamesList.Add(new OwnedGame
                     {
                         GameId = item.AppId,
-                        Name = gameSchema.Data.GameName,
-                        PlayTime = (int)Math.Round(item.PlaytimeForever.TotalHours)
+                        Name = name,
+                        PlayTime = (int)Math.Round(item.PlaytimeForever.TotalHours),
+                        Description = description
                     });
                 }
-                
             }
             int totalHoursPlayed = ownedGamesList.Select(x => x.PlayTime).Sum();
 
@@ -102,6 +99,32 @@ namespace IntegracjaSteamProjekt
 
         public PlayerProfile()
         {
+        }
+
+        private async static Task<(string name, string description)> GetAppDetailsAsync(uint appId)
+        {
+            string name ="";
+            string description = "";
+            MySqlConnection connection = new(Variables.ConnectionString);
+            await connection.OpenAsync();
+            MySqlCommand command;
+            string query = @"SELECT gn.game_name, gd.game_description FROM games_description AS gd LEFT JOIN game_names as gn on gn.game_id = gd.app_id
+                                WHERE gd.app_id = @appId;";
+            command = new(query, connection);
+            command.CommandTimeout = 60;
+            command.Parameters.AddWithValue("@appId", appId);
+
+            using (MySqlDataReader dataReader = (MySqlDataReader)await command.ExecuteReaderAsync())
+            {
+                if (await dataReader.ReadAsync())
+                {
+                    name = dataReader.GetString(0);
+                    description = dataReader.GetString(1);
+                }
+            }
+            await connection.CloseAsync();
+            return (name, description);
+
         }
     }
 }

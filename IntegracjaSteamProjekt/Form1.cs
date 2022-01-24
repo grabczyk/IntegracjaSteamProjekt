@@ -14,6 +14,7 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace IntegracjaSteamProjekt
 {
@@ -41,135 +42,34 @@ namespace IntegracjaSteamProjekt
             totalPlayedHoursTextBox.Text = PlayerProfile.TotalHoursPlayed.ToString();
             initialGamesValueTextBox.Text = (PlayerProfile.OwnedGamesInitialValue / 100).ToString() + " PLN";
             finalGamesValueTextBox.Text = (PlayerProfile.OwnedGamesFinalValue / 100).ToString() + " PLN";
+            Application.DoEvents();
         }
         private async void SearchButton_Click(object sender, EventArgs e)
         {
-            PlayerProfile = await PlayerProfile.LoadData(Convert.ToUInt64(steamIdTextBox.Text));
+            ClearForm();
+            searchButton.Enabled = false;
+            loadingSpinner.Visible = true;
+            Application.DoEvents();
+            PlayerProfile = await PlayerProfile.LoadDataAsync(Convert.ToUInt64(steamIdTextBox.Text));
+            loadingSpinner.Visible = false;
+            searchButton.Enabled = true;
+            Application.DoEvents();
             SetFormData();
-
         }
 
-        private void InsertToDbButton_Click(object sender, EventArgs e)
+        private async void InsertToDbButton_Click(object sender, EventArgs e)
         {
-            MySqlConnection connection = new(Variables.ConnectionString);
-            connection.Open();
-            MySqlCommand command;
-            string query = @"INSERT INTO `player_profile` (`steam_id`, `player_name`, `account_create_date`, `player_status`, `avatar_url`, `number_of_friends`, `total_hours_played`)
-                            VALUES (@steamId, @playerName, @accountCreateDate, @playerStatus, @avatarUrl, @numberOfFriends, @totalHoursPlayed)";
-            command = new(query, connection);
-            command.CommandTimeout = 60;
-            command.Parameters.AddWithValue("@steamId", PlayerProfile.SteamId.ToString());
-            command.Parameters.AddWithValue("@playerName", PlayerProfile.PlayerName);
-            command.Parameters.AddWithValue("@accountCreateDate", PlayerProfile.AccountCreationDate);
-            command.Parameters.AddWithValue("@playerStatus", PlayerProfile.PlayerStatus);
-            command.Parameters.AddWithValue("@avatarUrl", PlayerProfile.Url);
-            command.Parameters.AddWithValue("@numberOfFriends", PlayerProfile.NumberOfFriends);
-            command.Parameters.AddWithValue("@totalHoursPlayed", PlayerProfile.TotalHoursPlayed);
-            command.ExecuteNonQuery();
-
-            query = "SELECT LAST_INSERT_ID();";
-            command = new(query, connection);
-            int raport_id = Convert.ToInt32(command.ExecuteScalar());
-
-            StringBuilder sCommand = new StringBuilder("INSERT INTO `owned_games` (`game_name`, `play_time`, `raport_id`) VALUES ");
-            List<string> rows = new();
-            foreach (var item in PlayerProfile.OwnedGames)
-            {
-                rows.Add($"('{item.Name}', '{item.PlayTime}', '{raport_id}')");
-            }
-            sCommand.Append(string.Join(",", rows));
-            sCommand.Append(";");
-            command = new(sCommand.ToString(), connection);
-            command.ExecuteNonQuery();
-            
-
+            await AddToDbAsync();
         }
 
-        private void downloadFromDatabaseButton_Click(object sender, EventArgs e)
+        private async void DownloadFromDatabaseButton_Click(object sender, EventArgs e)
         {
-            List<PlayerProfile> lista = new();
-            MySqlDataReader reader;
-            MySqlConnection connection = new(Variables.ConnectionString);
-            connection.Open();
-            MySqlCommand command;
-            string query = @"SELECT `steam_id`, `player_name`, `account_create_date`, `player_status`, `avatar_url`, `number_of_friends`, `total_hours_played` FROM `player_profile`;";
-            command = new(query, connection);
-            command.CommandTimeout = 60;
-
-            reader = command.ExecuteReader();
-
-            if (reader.HasRows)
-            {
-                while (reader.Read())
-                {
-                    lista.Add(new PlayerProfile
-                    {
-                        SteamId = reader.GetUInt64(0),
-                        PlayerName = reader.GetString(1),
-                        AccountCreationDate = reader.GetDateTime(2),
-                        PlayerStatus = reader.GetString(3),
-                        Url = reader.GetString(4),
-                        NumberOfFriends = reader.GetInt32(5),
-                        TotalHoursPlayed = reader.GetInt32(6)
-                    });
-                }
-            }
-            dataGridView1.DataSource = lista;
-
-
+            await DownloadPlayerProfilesAsync();
         }
 
-        private void googleDriveButton_Click(object sender, EventArgs e)
+        private async void googleDriveButton_Click(object sender, EventArgs e)
         {
-            string[] Scopes = { DriveService.Scope.Drive };
-            string ApplicationName = "Drive API .NET Quickstart";
-            UserCredential credential;
-
-            using (var stream =
-                new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
-            {
-                // The file token.json stores the user's access and refresh tokens, and is created
-                // automatically when the authorization flow completes for the first time.
-                string credPath = "token.json";
-                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.FromStream(stream).Secrets,
-                    Scopes,
-                    "user",
-                    CancellationToken.None,
-                    new FileDataStore(credPath, true)).Result;
-            }
-            var service = new DriveService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = ApplicationName,
-            });
-
-            MemoryStream uploadStream = new MemoryStream(Encoding.ASCII.GetBytes(JsonSerializer.Serialize(PlayerProfile)));
-
-            Google.Apis.Drive.v3.Data.File driveFile = new Google.Apis.Drive.v3.Data.File
-            {
-                Name = "test.json"
-            };
-            FilesResource.CreateMediaUpload insertRequest = service.Files.Create (
-                driveFile, uploadStream, "application/json");
-            var a = service.Files.List().Execute();
-            // var b = service.Files.Get(a.Files[0].Id).Execute();
-            if (a.Files.Count > 0)
-            {
-                foreach (var item in a.Files)
-                {
-                    service.Files.Delete(item.Id).Execute();
-                }
-            }
-            insertRequest.Upload();
-            a = service.Files.List().Execute();
-            Google.Apis.Drive.v3.Data.Permission permission = new();
-            permission.Role = "reader";
-            permission.Type = "anyone";
-            service.Permissions.Create(permission, a.Files[0].Id).Execute();
-            a = service.Files.List().Execute();
-            Clipboard.SetText($"https://drive.google.com/file/d/{a.Files[0].Id}/view?usp=sharing");
-
+            await UploadToGoogleDriveAsync();
         }
 
 
@@ -285,6 +185,10 @@ namespace IntegracjaSteamProjekt
             playerOwnedGamesListBox.Items.Clear();
             initialGamesValueTextBox.Clear();
             finalGamesValueTextBox.Clear();
+            totalPlayedHoursTextBox.Clear();
+            gameplayTimeTextBox.Clear();
+            gameDescriptionTextBox.Clear();
+            Application.DoEvents();
         }
 
         private void PlayerOwnedGamesListBox_SelectedValueChanged(object sender, EventArgs e)
@@ -293,10 +197,77 @@ namespace IntegracjaSteamProjekt
             if (selectedItem is not null)
             {
                 gameplayTimeTextBox.Text = PlayerProfile.OwnedGames.First(x => x.Name.Equals(selectedItem)).PlayTime.ToString();
-
+                gameDescriptionTextBox.Text = PlayerProfile.OwnedGames.First(x => x.Name.Equals(selectedItem)).Description;
             }
         }
 
+        private async Task AddToDbAsync()
+        {
+            MySqlConnection connection = new(Variables.ConnectionString);
+            await connection.OpenAsync();
+            MySqlCommand command;
+            string query = @"INSERT INTO `player_profile` (`steam_id`, `player_name`, `account_create_date`, `player_status`, `avatar_url`, `number_of_friends`, `total_hours_played`)
+                            VALUES (@steamId, @playerName, @accountCreateDate, @playerStatus, @avatarUrl, @numberOfFriends, @totalHoursPlayed)";
+            command = new(query, connection);
+            command.CommandTimeout = 60;
+            command.Parameters.AddWithValue("@steamId", PlayerProfile.SteamId.ToString());
+            command.Parameters.AddWithValue("@playerName", PlayerProfile.PlayerName);
+            command.Parameters.AddWithValue("@accountCreateDate", PlayerProfile.AccountCreationDate);
+            command.Parameters.AddWithValue("@playerStatus", PlayerProfile.PlayerStatus);
+            command.Parameters.AddWithValue("@avatarUrl", PlayerProfile.Url);
+            command.Parameters.AddWithValue("@numberOfFriends", PlayerProfile.NumberOfFriends);
+            command.Parameters.AddWithValue("@totalHoursPlayed", PlayerProfile.TotalHoursPlayed);
+            await command.ExecuteNonQueryAsync();
+
+            query = "SELECT LAST_INSERT_ID();";
+            command = new(query, connection);
+            int raport_id = Convert.ToInt32(await command.ExecuteScalarAsync());
+
+            StringBuilder sCommand = new StringBuilder("INSERT INTO `owned_games` (`game_name`, `game_description`, `play_time`, `raport_id`) VALUES ");
+            List<string> rows = new();
+            foreach (var item in PlayerProfile.OwnedGames)
+            {
+                rows.Add($"('{item.Name}', '{item.Description}','{item.PlayTime}', '{raport_id}')");
+            }
+            sCommand.Append(string.Join(",", rows));
+            sCommand.Append(';');
+            command = new(sCommand.ToString(), connection);
+            await command.ExecuteNonQueryAsync();
+            await connection.CloseAsync();
+        }
+
+        private async Task DownloadPlayerProfilesAsync()
+        {
+            MySqlConnection connection = new(Variables.ConnectionString);
+            await connection.OpenAsync();
+            MySqlCommand command;
+            string query = @"SELECT * FROM `player_profile`;";
+            command = new(query, connection);
+            command.CommandTimeout = 60;
+
+            MySqlDataAdapter dataAdapter = new MySqlDataAdapter(command);
+            DataTable dataTable = new DataTable();
+            await dataAdapter.FillAsync(dataTable);
+            playerProfileGridView.DataSource = dataTable;
+            await connection.CloseAsync();
+        }
+
+        private async Task DownloadOwnedGames(int raportId)
+        {
+            MySqlConnection connection = new(Variables.ConnectionString);
+            await connection.OpenAsync();
+            MySqlCommand command;
+            string query = @"SELECT `game_name`, `game_description`, `play_time` FROM `owned_games` WHERE raport_id = @raportId";
+            command = new(query, connection);
+            command.CommandTimeout = 60;
+            command.Parameters.AddWithValue("@raportId", raportId);
+
+            MySqlDataAdapter dataAdapter = new MySqlDataAdapter(command);
+            DataTable dataTable = new DataTable();
+            await dataAdapter.FillAsync(dataTable);
+            ownedGamesGridView.DataSource = dataTable;
+            await connection.CloseAsync();
+        }
         private void SoapApiStartButton_Click(object sender, EventArgs e)
         {
             Api.StartStopSoapApi(5000);
@@ -330,6 +301,76 @@ namespace IntegracjaSteamProjekt
                 MessageBox.Show("Należy najpierw wyłączyć Web Serwisy!");
                 e.Cancel = true;
             }
+        }
+
+        private void steamIdTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            e.Handled = !char.IsDigit(e.KeyChar);
+        }
+
+        private async void playerProfileGridView_SelectionChanged(object sender, EventArgs e)
+        {
+            int raportId = -1;
+            var selected = playerProfileGridView.SelectedRows;
+            if (selected.Count != 0)
+            {
+                var value = selected[0].Cells[0].Value;
+                raportId = value != DBNull.Value ? (int)value : -1;
+            }
+            await DownloadOwnedGames(raportId);
+            
+
+        }
+
+        private async Task UploadToGoogleDriveAsync()
+        {
+            googleDriveLinkTextBox.Text = "Wysyłanie pliku...";
+            string[] Scopes = { DriveService.Scope.Drive };
+            string ApplicationName = "Integracja Steam Projekt";
+            UserCredential credential;
+
+            using (var stream =
+                new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
+            {
+                string credPath = "token.json";
+                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.FromStream(stream).Secrets,
+                    Scopes,
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore(credPath, true)).Result;
+            }
+            var service = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = ApplicationName,
+            });
+
+            MemoryStream uploadStream = new(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(PlayerProfile)));
+
+            Google.Apis.Drive.v3.Data.File driveFile = new Google.Apis.Drive.v3.Data.File
+            {
+                Name = "playerProfile.json"
+            };
+            FilesResource.CreateMediaUpload insertRequest = service.Files.Create(
+                driveFile, uploadStream, "application/json");
+            var filesList = await service.Files.List().ExecuteAsync();
+            if (filesList.Files.Count > 0)
+            {
+                foreach (var item in filesList.Files)
+                {
+                    await service.Files.Delete(item.Id).ExecuteAsync();
+                }
+            }
+            await insertRequest.UploadAsync();
+            filesList = await service.Files.List().ExecuteAsync();
+            await Task.Delay(5000);
+            Google.Apis.Drive.v3.Data.Permission permission = new();
+            permission.Role = "reader";
+            permission.Type = "anyone";
+            await service.Permissions.Create(permission, filesList.Files[0].Id).ExecuteAsync();
+            filesList = await service.Files.List().ExecuteAsync();
+            googleDriveLinkTextBox.Text = $"https://drive.google.com/file/d/{filesList.Files[0].Id}/view?usp=sharing";
         }
     }
 }

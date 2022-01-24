@@ -1,12 +1,16 @@
-﻿using System.ServiceModel;
+﻿using System.Collections.Generic;
+using System.ServiceModel;
+using System.Threading.Tasks;
+
 namespace IntegracjaSteamProjekt
 {
     [ServiceContract]
     public interface ISampleService
     {
         [OperationContract]
-        string Test();
+        string ProjectDescription();
+
         [OperationContract]
-        string HelloPolitechnika();
+        Task<List<string>> PlayerOwnedGames(string playerName);
     }
 }

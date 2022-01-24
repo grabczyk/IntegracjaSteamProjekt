@@ -88,6 +88,7 @@ namespace IntegracjaSteamProjekt
                 Program.Form.apiGatewayStateLabel.Text = "Running";
                 Program.Form.apiGatewayStateLabel.BackColor = Color.Green;
                 Program.Form.apiGatewayStopButton.Enabled = true;
+                
                 },null);
                 while (running)
                 {

@@ -11,5 +11,6 @@ namespace IntegracjaSteamProjekt
         public uint GameId { get; set; }
         public string Name { get; set; }
         public int PlayTime { get; set; }
+        public string Description { get; set; }
     }
 }

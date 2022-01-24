@@ -31,6 +31,8 @@ namespace IntegracjaSteamProjekt
         {
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.loadingSpinner = new System.Windows.Forms.PictureBox();
+            this.gameDescriptionTextBox = new System.Windows.Forms.TextBox();
             this.apiGatewayStateLabel = new System.Windows.Forms.Label();
             this.soapApiStateLabel = new System.Windows.Forms.Label();
             this.apiGatewayStopButton = new System.Windows.Forms.Button();
@@ -66,13 +68,17 @@ namespace IntegracjaSteamProjekt
             this.playerNameTextBox = new System.Windows.Forms.TextBox();
             this.avatarPictureBox = new System.Windows.Forms.PictureBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.ownedGamesGridView = new System.Windows.Forms.DataGridView();
             this.downloadFromDatabaseButton = new System.Windows.Forms.Button();
-            this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.playerProfileGridView = new System.Windows.Forms.DataGridView();
+            this.googleDriveLinkTextBox = new System.Windows.Forms.TextBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.loadingSpinner)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.avatarPictureBox)).BeginInit();
             this.tabPage2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ownedGamesGridView)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.playerProfileGridView)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -87,6 +93,9 @@ namespace IntegracjaSteamProjekt
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.googleDriveLinkTextBox);
+            this.tabPage1.Controls.Add(this.loadingSpinner);
+            this.tabPage1.Controls.Add(this.gameDescriptionTextBox);
             this.tabPage1.Controls.Add(this.apiGatewayStateLabel);
             this.tabPage1.Controls.Add(this.soapApiStateLabel);
             this.tabPage1.Controls.Add(this.apiGatewayStopButton);
@@ -128,6 +137,25 @@ namespace IntegracjaSteamProjekt
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // loadingSpinner
+            // 
+            this.loadingSpinner.Image = global::IntegracjaSteamProjekt.Properties.Resources.spinner;
+            this.loadingSpinner.Location = new System.Drawing.Point(1064, 14);
+            this.loadingSpinner.Name = "loadingSpinner";
+            this.loadingSpinner.Size = new System.Drawing.Size(80, 80);
+            this.loadingSpinner.TabIndex = 39;
+            this.loadingSpinner.TabStop = false;
+            this.loadingSpinner.Visible = false;
+            // 
+            // gameDescriptionTextBox
+            // 
+            this.gameDescriptionTextBox.Location = new System.Drawing.Point(702, 257);
+            this.gameDescriptionTextBox.Multiline = true;
+            this.gameDescriptionTextBox.Name = "gameDescriptionTextBox";
+            this.gameDescriptionTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.gameDescriptionTextBox.Size = new System.Drawing.Size(354, 71);
+            this.gameDescriptionTextBox.TabIndex = 38;
             // 
             // apiGatewayStateLabel
             // 
@@ -194,7 +222,7 @@ namespace IntegracjaSteamProjekt
             // 
             // googleDriveButton
             // 
-            this.googleDriveButton.Location = new System.Drawing.Point(735, 362);
+            this.googleDriveButton.Location = new System.Drawing.Point(729, 496);
             this.googleDriveButton.Name = "googleDriveButton";
             this.googleDriveButton.Size = new System.Drawing.Size(75, 23);
             this.googleDriveButton.TabIndex = 31;
@@ -204,7 +232,7 @@ namespace IntegracjaSteamProjekt
             // 
             // initialGamesValueTextBox
             // 
-            this.initialGamesValueTextBox.Location = new System.Drawing.Point(864, 217);
+            this.initialGamesValueTextBox.Location = new System.Drawing.Point(858, 351);
             this.initialGamesValueTextBox.Name = "initialGamesValueTextBox";
             this.initialGamesValueTextBox.Size = new System.Drawing.Size(100, 23);
             this.initialGamesValueTextBox.TabIndex = 30;
@@ -212,7 +240,7 @@ namespace IntegracjaSteamProjekt
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(704, 225);
+            this.label9.Location = new System.Drawing.Point(698, 359);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(151, 15);
             this.label9.TabIndex = 29;
@@ -221,7 +249,7 @@ namespace IntegracjaSteamProjekt
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(707, 249);
+            this.label8.Location = new System.Drawing.Point(701, 383);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(145, 15);
             this.label8.TabIndex = 28;
@@ -229,14 +257,14 @@ namespace IntegracjaSteamProjekt
             // 
             // finalGamesValueTextBox
             // 
-            this.finalGamesValueTextBox.Location = new System.Drawing.Point(864, 249);
+            this.finalGamesValueTextBox.Location = new System.Drawing.Point(858, 383);
             this.finalGamesValueTextBox.Name = "finalGamesValueTextBox";
             this.finalGamesValueTextBox.Size = new System.Drawing.Size(100, 23);
             this.finalGamesValueTextBox.TabIndex = 27;
             // 
             // insertToDbButton
             // 
-            this.insertToDbButton.Location = new System.Drawing.Point(725, 278);
+            this.insertToDbButton.Location = new System.Drawing.Point(719, 412);
             this.insertToDbButton.Name = "insertToDbButton";
             this.insertToDbButton.Size = new System.Drawing.Size(168, 43);
             this.insertToDbButton.TabIndex = 26;
@@ -315,7 +343,7 @@ namespace IntegracjaSteamProjekt
             // 
             // gameplayTimeTextBox
             // 
-            this.gameplayTimeTextBox.Location = new System.Drawing.Point(1078, 119);
+            this.gameplayTimeTextBox.Location = new System.Drawing.Point(956, 219);
             this.gameplayTimeTextBox.Name = "gameplayTimeTextBox";
             this.gameplayTimeTextBox.Size = new System.Drawing.Size(84, 23);
             this.gameplayTimeTextBox.TabIndex = 18;
@@ -388,10 +416,12 @@ namespace IntegracjaSteamProjekt
             // steamIdTextBox
             // 
             this.steamIdTextBox.Location = new System.Drawing.Point(791, 14);
+            this.steamIdTextBox.MaxLength = 17;
             this.steamIdTextBox.Name = "steamIdTextBox";
             this.steamIdTextBox.Size = new System.Drawing.Size(153, 23);
             this.steamIdTextBox.TabIndex = 8;
             this.steamIdTextBox.Text = "76561198182526571";
+            this.steamIdTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.steamIdTextBox_KeyPress);
             // 
             // profileStatusLabel
             // 
@@ -442,8 +472,9 @@ namespace IntegracjaSteamProjekt
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.ownedGamesGridView);
             this.tabPage2.Controls.Add(this.downloadFromDatabaseButton);
-            this.tabPage2.Controls.Add(this.dataGridView1);
+            this.tabPage2.Controls.Add(this.playerProfileGridView);
             this.tabPage2.Location = new System.Drawing.Point(4, 24);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -452,24 +483,44 @@ namespace IntegracjaSteamProjekt
             this.tabPage2.Text = "tabPage2";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // ownedGamesGridView
+            // 
+            this.ownedGamesGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.ownedGamesGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.ownedGamesGridView.Location = new System.Drawing.Point(8, 290);
+            this.ownedGamesGridView.Name = "ownedGamesGridView";
+            this.ownedGamesGridView.RowTemplate.Height = 25;
+            this.ownedGamesGridView.Size = new System.Drawing.Size(1178, 225);
+            this.ownedGamesGridView.TabIndex = 2;
+            // 
             // downloadFromDatabaseButton
             // 
             this.downloadFromDatabaseButton.Location = new System.Drawing.Point(32, 544);
             this.downloadFromDatabaseButton.Name = "downloadFromDatabaseButton";
             this.downloadFromDatabaseButton.Size = new System.Drawing.Size(220, 44);
             this.downloadFromDatabaseButton.TabIndex = 1;
-            this.downloadFromDatabaseButton.Text = "Podpierdol z bazy danych";
+            this.downloadFromDatabaseButton.Text = "Pobierz z bazy danych";
             this.downloadFromDatabaseButton.UseVisualStyleBackColor = true;
-            this.downloadFromDatabaseButton.Click += new System.EventHandler(this.downloadFromDatabaseButton_Click);
+            this.downloadFromDatabaseButton.Click += new System.EventHandler(this.DownloadFromDatabaseButton_Click);
             // 
-            // dataGridView1
+            // playerProfileGridView
             // 
-            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Location = new System.Drawing.Point(8, 6);
-            this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.RowTemplate.Height = 25;
-            this.dataGridView1.Size = new System.Drawing.Size(1178, 531);
-            this.dataGridView1.TabIndex = 0;
+            this.playerProfileGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.playerProfileGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.playerProfileGridView.Location = new System.Drawing.Point(8, 6);
+            this.playerProfileGridView.Name = "playerProfileGridView";
+            this.playerProfileGridView.RowTemplate.Height = 25;
+            this.playerProfileGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.playerProfileGridView.Size = new System.Drawing.Size(1178, 233);
+            this.playerProfileGridView.TabIndex = 0;
+            this.playerProfileGridView.SelectionChanged += new System.EventHandler(this.playerProfileGridView_SelectionChanged);
+            // 
+            // googleDriveLinkTextBox
+            // 
+            this.googleDriveLinkTextBox.Location = new System.Drawing.Point(811, 496);
+            this.googleDriveLinkTextBox.Name = "googleDriveLinkTextBox";
+            this.googleDriveLinkTextBox.Size = new System.Drawing.Size(342, 23);
+            this.googleDriveLinkTextBox.TabIndex = 40;
             // 
             // Form1
             // 
@@ -483,9 +534,11 @@ namespace IntegracjaSteamProjekt
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.loadingSpinner)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.avatarPictureBox)).EndInit();
             this.tabPage2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ownedGamesGridView)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.playerProfileGridView)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -518,7 +571,7 @@ namespace IntegracjaSteamProjekt
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Button insertToDbButton;
         private System.Windows.Forms.Button downloadFromDatabaseButton;
-        private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.DataGridView playerProfileGridView;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TextBox finalGamesValueTextBox;
         private System.Windows.Forms.TextBox initialGamesValueTextBox;
@@ -531,6 +584,10 @@ namespace IntegracjaSteamProjekt
         public System.Windows.Forms.Button apigatewayStartButton;
         public System.Windows.Forms.Button soapApiStopButton;
         public System.Windows.Forms.Button apiGatewayStopButton;
+        private System.Windows.Forms.TextBox gameDescriptionTextBox;
+        private System.Windows.Forms.PictureBox loadingSpinner;
+        private System.Windows.Forms.DataGridView ownedGamesGridView;
+        private System.Windows.Forms.TextBox googleDriveLinkTextBox;
     }
 }
 
