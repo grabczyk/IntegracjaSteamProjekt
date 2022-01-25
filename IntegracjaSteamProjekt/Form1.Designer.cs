@@ -274,7 +274,6 @@ namespace IntegracjaSteamProjekt
             // 
             // jsonImportButton
             // 
-            this.jsonImportButton.Enabled = false;
             this.jsonImportButton.Location = new System.Drawing.Point(6, 22);
             this.jsonImportButton.Name = "jsonImportButton";
             this.jsonImportButton.Size = new System.Drawing.Size(88, 24);
@@ -286,7 +285,6 @@ namespace IntegracjaSteamProjekt
             // 
             // xmlImportButton
             // 
-            this.xmlImportButton.Enabled = false;
             this.xmlImportButton.Location = new System.Drawing.Point(6, 52);
             this.xmlImportButton.Name = "xmlImportButton";
             this.xmlImportButton.Size = new System.Drawing.Size(88, 24);

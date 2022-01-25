@@ -42,23 +42,7 @@ namespace IntegracjaSteamProjekt
             Context = SynchronizationContext.Current;
         }
 
-        /// <summary>
-        /// Funkcja ustawiająca dane w kontrolkach formu
-        /// </summary>
-        private void SetFormData()
-        {
-            playerNameTextBox.Text = PlayerProfile.PlayerName;
-            accountCreationDateTextBox.Text = PlayerProfile.AccountCreationDate.ToString();
-            profileStatusLabel.Text = PlayerProfile.PlayerStatus.ToString();
-            numberOfOwnedGamesTextBox.Text = PlayerProfile.OwnedGames.Count.ToString();
-            numberOfFriendsTextBox.Text = PlayerProfile.NumberOfFriends.ToString();
-            avatarPictureBox.LoadAsync(PlayerProfile.Url);
-            playerOwnedGamesListBox.DataSource = PlayerProfile.OwnedGames.Select(x => x.Name).ToList();
-            totalPlayedHoursTextBox.Text = PlayerProfile.TotalHoursPlayed.ToString();
-            initialGamesValueTextBox.Text = (PlayerProfile.OwnedGamesInitialValue / 100).ToString() + " PLN";
-            finalGamesValueTextBox.Text = (PlayerProfile.OwnedGamesFinalValue / 100).ToString() + " PLN";
-            Application.DoEvents();
-        }
+        
 
         private async void SearchButton_Click(object sender, EventArgs e)
         {
@@ -92,6 +76,7 @@ namespace IntegracjaSteamProjekt
         {
             try
             {
+                insertToDbButton.Enabled = false;
                 await AddToDbAsync();
                 MessageBox.Show("Dodano profil gracza do bazy!");
             }
@@ -155,6 +140,103 @@ namespace IntegracjaSteamProjekt
             }
         }
 
+        private void ExportButtonClick(object sender, EventArgs e)
+        {
+            string fileType = (sender as Button).Tag.ToString();
+            if (ExportFile(fileType))
+            {
+                MessageBox.Show($"Wyexportowano plik .{fileType}");
+            }
+        }
+
+        private void ImportButtonClick(object sender, EventArgs e)
+        {
+            string fileType = (sender as Button).Tag.ToString();
+            ClearForm();
+            if (ImportFile(fileType))
+            {
+                SetFormData();
+            }
+            else
+            {
+                MessageBox.Show("Wystąpił błąd podczas importowania danych z pliku!");
+            }
+        }
+
+        private void PlayerOwnedGamesListBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            object selectedItem = playerOwnedGamesListBox.SelectedItem;
+            if (selectedItem is not null)
+            {
+                gameplayTimeTextBox.Text = PlayerProfile.OwnedGames.First(x => x.Name.Equals(selectedItem)).PlayTime.ToString();
+                gameDescriptionTextBox.Text = PlayerProfile.OwnedGames.First(x => x.Name.Equals(selectedItem)).Description;
+            }
+        }
+
+        private void SoapApiStartButton_Click(object sender, EventArgs e)
+        {
+            Api.StartStopSoapApi(5000);
+        }
+
+        private void ApigatewayStartButton_Click(object sender, EventArgs e)
+        {
+            Api.StartStopApiGateway(5100);
+        }
+
+
+        private void SoapApiStopButton_Click(object sender, EventArgs e)
+        {
+            SoapApiCancallationTokenSource.Cancel();
+            soapApiStopButton.Enabled = false;
+            soapApiStartButton.Enabled = true;
+        }
+
+        private void ApiGatewayStopButton_Click(object sender, EventArgs e)
+        {
+            ApigatewayCancallationTokenSource.Cancel();
+            apiGatewayStopButton.Enabled = false;
+            apigatewayStartButton.Enabled = true;
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+
+            if (Program.SoapApiTask is not null || Program.ApiGatewayTask is not null)
+            {
+                MessageBox.Show("Należy najpierw wyłączyć Web Serwisy!");
+                e.Cancel = true;
+            }
+        }
+
+        private void SteamIdTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            e.Handled = e.KeyChar != (char)8 && !char.IsDigit(e.KeyChar);
+        }
+
+        private async void PlayerProfileGridView_SelectionChanged(object sender, EventArgs e)
+        {
+            int raportId = -1;
+            var selected = playerProfileGridView.SelectedRows;
+            if (selected.Count != 0)
+            {
+                var value = selected[0].Cells[0].Value;
+                raportId = value != DBNull.Value ? (int)value : -1;
+            }
+            await DownloadOwnedGames(raportId);
+        }
+
+        private void SteamIdTextBox_TextChanged(object sender, EventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            if (textBox.Text.Length < 17)
+            {
+                searchButton.Enabled = false;
+            }
+            else
+            {
+                searchButton.Enabled = true;
+            }
+        }
         /// <summary>
         /// Funkcja do obsługi exportowania danych do JSON i XML
         /// </summary>
@@ -197,6 +279,7 @@ namespace IntegracjaSteamProjekt
             OpenFileDialog openFileDialog = new();
             string fileContent;
             string filePath;
+            openFileDialog.Filter = fileType == "xml" ? "Pliki xml (*.xml)|*.xml|Wszystkie pliki (*.*)|*.*" : "Pliki json (*.json)|*.json|Wszystkie pliki (*.*)|*.*";
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 filePath = openFileDialog.FileName;
@@ -210,33 +293,32 @@ namespace IntegracjaSteamProjekt
             {
                 XmlSerializer xmlSerializer = new(typeof(PlayerProfile));
                 using Stream stream = new FileStream(filePath, FileMode.Open);
-                PlayerProfile = (PlayerProfile)xmlSerializer.Deserialize(stream);
+                try
+                {
+                    PlayerProfile = (PlayerProfile)xmlSerializer.Deserialize(stream);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+                
             }
             else
             {
-                PlayerProfile = JsonSerializer.Deserialize<PlayerProfile>(fileContent);
+                try
+                {
+                    PlayerProfile = JsonSerializer.Deserialize<PlayerProfile>(fileContent);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+               
             }
             return true;
         }
 
-        private void ExportButtonClick(object sender, EventArgs e)
-        {
-            string fileType = (sender as Button).Tag.ToString();
-            if (ExportFile(fileType))
-            {
-                MessageBox.Show($"Wyexportowano plik .{fileType}");
-            }
-        }
-
-        private void ImportButtonClick(object sender, EventArgs e)
-        {
-            string fileType = (sender as Button).Tag.ToString();
-            ClearForm();
-            if (ImportFile(fileType))
-            {
-                SetFormData();
-            }
-        }
+        
 
         /// <summary>
         /// Funkcja do czyszcznia danych z kontrolek forma
@@ -260,16 +342,32 @@ namespace IntegracjaSteamProjekt
         }
 
         /// <summary>
+        /// Funkcja ustawiająca dane w kontrolkach formu
+        /// </summary>
+        private void SetFormData()
+        {
+            playerNameTextBox.Text = PlayerProfile.PlayerName;
+            accountCreationDateTextBox.Text = PlayerProfile.AccountCreationDate.ToString();
+            profileStatusLabel.Text = PlayerProfile.PlayerStatus.ToString();
+            numberOfOwnedGamesTextBox.Text = PlayerProfile.OwnedGames.Count.ToString();
+            numberOfFriendsTextBox.Text = PlayerProfile.NumberOfFriends.ToString();
+            avatarPictureBox.LoadAsync(PlayerProfile.Url);
+            playerOwnedGamesListBox.DataSource = PlayerProfile.OwnedGames.Select(x => x.Name).ToList();
+            totalPlayedHoursTextBox.Text = PlayerProfile.TotalHoursPlayed.ToString();
+            initialGamesValueTextBox.Text = (PlayerProfile.OwnedGamesInitialValue / 100).ToString() + " PLN";
+            finalGamesValueTextBox.Text = (PlayerProfile.OwnedGamesFinalValue / 100).ToString() + " PLN";
+            Application.DoEvents();
+        }
+
+        /// <summary>
         /// Funkcja wyłączająca wybrane przyciski w formie
         /// </summary>
         private void DisableButtons()
         {
             searchButton.Enabled = false;
             googleDriveButton.Enabled = false;
-            jsonExportButton.Enabled = false;
-            jsonImportButton.Enabled = false;
             xmlExportButton.Enabled = false;
-            xmlImportButton.Enabled = false;
+            jsonExportButton.Enabled = false;
             insertToDbButton.Enabled = false;
         }
 
@@ -280,22 +378,12 @@ namespace IntegracjaSteamProjekt
         {
             searchButton.Enabled = true;
             googleDriveButton.Enabled = true;
-            jsonExportButton.Enabled = true;
-            jsonImportButton.Enabled = true;
             xmlExportButton.Enabled = true;
-            xmlImportButton.Enabled = true;
+            jsonExportButton.Enabled = true;
             insertToDbButton.Enabled = true;
         }
 
-        private void PlayerOwnedGamesListBox_SelectedValueChanged(object sender, EventArgs e)
-        {
-            object selectedItem = playerOwnedGamesListBox.SelectedItem;
-            if (selectedItem is not null)
-            {
-                gameplayTimeTextBox.Text = PlayerProfile.OwnedGames.First(x => x.Name.Equals(selectedItem)).PlayTime.ToString();
-                gameDescriptionTextBox.Text = PlayerProfile.OwnedGames.First(x => x.Name.Equals(selectedItem)).Description;
-            }
-        }
+        
 
         /// <summary>
         /// Asynchroniczna funkcja do dodawania danych profilu i posiadanych gier do bazy
@@ -373,57 +461,7 @@ namespace IntegracjaSteamProjekt
             ownedGamesGridView.DataSource = dataTable;
             await connection.CloseAsync();
         }
-        private void SoapApiStartButton_Click(object sender, EventArgs e)
-        {
-            Api.StartStopSoapApi(5000);
-        }
-
-        private void ApigatewayStartButton_Click(object sender, EventArgs e)
-        {
-            Api.StartStopApiGateway(5100);
-        }
-
-
-        private void SoapApiStopButton_Click(object sender, EventArgs e)
-        {
-            SoapApiCancallationTokenSource.Cancel();
-            soapApiStopButton.Enabled = false;
-            soapApiStartButton.Enabled = true;
-        }
-
-        private void ApiGatewayStopButton_Click(object sender, EventArgs e)
-        {
-            ApigatewayCancallationTokenSource.Cancel();
-            apiGatewayStopButton.Enabled = false;
-            apigatewayStartButton.Enabled = true;
-        }
-
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-        {
-
-            if (Program.SoapApiTask is not null || Program.ApiGatewayTask is not null)
-            {
-                MessageBox.Show("Należy najpierw wyłączyć Web Serwisy!");
-                e.Cancel = true;
-            }
-        }
-
-        private void SteamIdTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            e.Handled = e.KeyChar != (char)8 && !char.IsDigit(e.KeyChar);
-        }
-
-        private async void PlayerProfileGridView_SelectionChanged(object sender, EventArgs e)
-        {
-            int raportId = -1;
-            var selected = playerProfileGridView.SelectedRows;
-            if (selected.Count != 0)
-            {
-                var value = selected[0].Cells[0].Value;
-                raportId = value != DBNull.Value ? (int)value : -1;
-            }
-            await DownloadOwnedGames(raportId);
-        }
+        
 
         /// <summary>
         /// Asynchroniczna funkcja do uploadowania pliku JSON do Google Drive
@@ -479,17 +517,6 @@ namespace IntegracjaSteamProjekt
             googleDriveLinkTextBox.Text = $"https://drive.google.com/file/d/{filesList.Files[0].Id}/view?usp=sharing";
         }
 
-        private void SteamIdTextBox_TextChanged(object sender, EventArgs e)
-        {
-            TextBox textBox = sender as TextBox;
-            if (textBox.Text.Length < 17)
-            {
-                searchButton.Enabled = false;
-            }
-            else
-            {
-                searchButton.Enabled = true;
-            }
-        }
+
     }
 }
