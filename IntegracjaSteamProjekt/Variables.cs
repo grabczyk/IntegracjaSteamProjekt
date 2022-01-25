@@ -2,8 +2,14 @@
 
 namespace IntegracjaSteamProjekt
 {
+    /// <summary>
+    /// Pomocniczna klasa z danymi konfiguracyjnymi
+    /// </summary>
     class Variables
     {
+        /// <summary>
+        /// Klucz do Steam API
+        /// </summary>
         public static string ApiKey
         {
             get
@@ -12,6 +18,9 @@ namespace IntegracjaSteamProjekt
             }
         }
 
+        /// <summary>
+        /// Connection string do bazy danych
+        /// </summary>
         public static string ConnectionString
         {
             get

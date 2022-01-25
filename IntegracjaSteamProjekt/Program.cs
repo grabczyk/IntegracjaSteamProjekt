@@ -1,19 +1,22 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace IntegracjaSteamProjekt
 {
     static class Program
     {
-        public static  Task SoapApiTask { get; set; }
+        /// <summary>
+        /// W³aœciwoœæ przechowuj¹ca Task dla stworzonego hosta soapAPI
+        /// </summary>
+        public static Task SoapApiTask { get; set; }
+        /// <summary>
+        /// W³aœciwoœæ przechowuj¹ca Task dla stworzonego hosta APIGateway
+        /// </summary>
         public static Task ApiGatewayTask { get; set; }
+        /// <summary>
+        /// W³aœciwoœæ przechowuj¹ca g³ówny form w celu odniesienia do niego z innych klas
+        /// </summary>
         public static Form1 Form { get; set; }
 
         /// <summary>

@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 
 namespace IntegracjaSteamProjekt
 {
+    /// <summary>
+    /// Intersejs funkcji soapAPI
+    /// </summary>
     [ServiceContract]
-    public interface ISampleService
+    public interface ISoapApiService
     {
         [OperationContract]
         string ProjectDescription();

@@ -20,9 +20,21 @@ namespace IntegracjaSteamProjekt
 {
     public partial class Form1 : Form
     {
+        /// <summary>
+        /// Właściwość przechowująca bierzący kontekst formu, w którym wykonywane są akcje
+        /// </summary>
         public SynchronizationContext Context { get; set; }
+        /// <summary>
+        /// Obiekt z danymi profilu gracza
+        /// </summary>
         private PlayerProfile PlayerProfile { get; set; }
+        /// <summary>
+        /// Źródło dla tokenu używanego w wyłączaniu soapAPI
+        /// </summary>
         public CancellationTokenSource SoapApiCancallationTokenSource { get; set; }
+        /// <summary>
+        /// Źródło dla tokenu używanego w wyłączaniu APIGateway
+        /// </summary>
         public CancellationTokenSource ApigatewayCancallationTokenSource { get; set; }
         public Form1()
         {
@@ -30,6 +42,9 @@ namespace IntegracjaSteamProjekt
             Context = SynchronizationContext.Current;
         }
 
+        /// <summary>
+        /// Funkcja ustawiająca dane w kontrolkach formu
+        /// </summary>
         private void SetFormData()
         {
             playerNameTextBox.Text = PlayerProfile.PlayerName;
@@ -44,17 +59,21 @@ namespace IntegracjaSteamProjekt
             finalGamesValueTextBox.Text = (PlayerProfile.OwnedGamesFinalValue / 100).ToString() + " PLN";
             Application.DoEvents();
         }
+
         private async void SearchButton_Click(object sender, EventArgs e)
         {
             ClearForm();
-            searchButton.Enabled = false;
-            loadingSpinner.Visible = true;
+            DisableButtons();
+            string steamId = steamIdTextBox.Text;
+            steamIdTextBox.Text = "Pobieranie danych...";
+            steamIdTextBox.ForeColor = Color.Green;
             Application.DoEvents();
-            PlayerProfile = await PlayerProfile.LoadDataAsync(Convert.ToUInt64(steamIdTextBox.Text));
-            loadingSpinner.Visible = false;
-            searchButton.Enabled = true;
-            Application.DoEvents();
+            PlayerProfile = await PlayerProfile.LoadDataAsync(Convert.ToUInt64(steamId));
+            steamIdTextBox.Text = steamId;
+            steamIdTextBox.ForeColor = Color.Black;
+            EnableButtons();
             SetFormData();
+            Application.DoEvents();
         }
 
         private async void InsertToDbButton_Click(object sender, EventArgs e)
@@ -67,13 +86,15 @@ namespace IntegracjaSteamProjekt
             await DownloadPlayerProfilesAsync();
         }
 
-        private async void googleDriveButton_Click(object sender, EventArgs e)
+        private async void GoogleDriveButton_Click(object sender, EventArgs e)
         {
             await UploadToGoogleDriveAsync();
         }
 
-
-        private void activityLabel_TextChanged(object sender, EventArgs e)
+        /// <summary>
+        /// Event do zmiany koloru labela stanu aktywności gracza
+        /// </summary>
+        private void ActivityLabel_TextChanged(object sender, EventArgs e)
         {
             switch (profileStatusLabel.Text)
             {
@@ -86,7 +107,7 @@ namespace IntegracjaSteamProjekt
                 case "Busy":
                 case "Away":
                 case "Snooze":
-                    profileStatusLabel.BackColor = Color.Orange;
+                    profileStatusLabel.BackColor = Color.Yellow;
                     break;
                 case "Unknown":
                     profileStatusLabel.BackColor = Color.Black;
@@ -99,6 +120,11 @@ namespace IntegracjaSteamProjekt
             }
         }
 
+        /// <summary>
+        /// Funkcja do obsługi exportowania danych do JSON i XML
+        /// </summary>
+        /// <param name="fileType">Typ eksportowanego pliku</param>
+        /// <returns>Wartość określająca czy dane zostały wyexportowane</returns>
         private bool ExportFile(string fileType)
         {
             SaveFileDialog saveFileDialog = new();
@@ -108,8 +134,7 @@ namespace IntegracjaSteamProjekt
                 saveFileDialog.Filter = "Pliki xml (*.xml)|*.xml|Wszystkie pliki (*.*)|*.*";
                 saveFileDialog.FileName = "player_profile.xml";
                 XmlSerializer xmlSerializer = new(typeof(PlayerProfile));
-                var encoding = Encoding.GetEncoding("utf-8");
-                using StringWriter writer = new();
+                using Utf8StringWriter writer = new();
                 xmlSerializer.Serialize(writer, PlayerProfile);
                 fileContent = writer.ToString();
             }
@@ -121,12 +146,17 @@ namespace IntegracjaSteamProjekt
             }
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
-                System.IO.File.WriteAllText(saveFileDialog.FileName, fileContent);
+                File.WriteAllText(saveFileDialog.FileName, fileContent);
                 return true;
             }
             return false;
         }
 
+        /// <summary>
+        /// Funkcja do obsługi importowania danych z JSON i XML
+        /// </summary>
+        /// <param name="fileType">Typ importowanego pliku</param>
+        /// <returns>Wartość określająca czy dane zostały zaimportowane</returns>
         private bool ImportFile(string fileType)
         {
             OpenFileDialog openFileDialog = new();
@@ -135,7 +165,7 @@ namespace IntegracjaSteamProjekt
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 filePath = openFileDialog.FileName;
-                fileContent = System.IO.File.ReadAllText(filePath);
+                fileContent = File.ReadAllText(filePath);
             }
             else
             {
@@ -173,6 +203,9 @@ namespace IntegracjaSteamProjekt
             }
         }
 
+        /// <summary>
+        /// Funkcja do czyszcznia danych z kontrolek forma
+        /// </summary>
         private void ClearForm()
         {
             playerNameTextBox.Clear();
@@ -191,6 +224,34 @@ namespace IntegracjaSteamProjekt
             Application.DoEvents();
         }
 
+        /// <summary>
+        /// Funkcja wyłączająca wybrane przyciski w formie
+        /// </summary>
+        private void DisableButtons()
+        {
+            searchButton.Enabled = false;
+            googleDriveButton.Enabled = false;
+            jsonExportButton.Enabled = false;
+            jsonImportButton.Enabled = false;
+            xmlExportButton.Enabled = false;
+            xmlImportButton.Enabled = false;
+            insertToDbButton.Enabled = false;
+        }
+
+        /// <summary>
+        /// Funkcja włączająca wybrane przyciski w formie
+        /// </summary>
+        private void EnableButtons()
+        {
+            searchButton.Enabled = true;
+            googleDriveButton.Enabled = true;
+            jsonExportButton.Enabled = true;
+            jsonImportButton.Enabled = true;
+            xmlExportButton.Enabled = true;
+            xmlImportButton.Enabled = true;
+            insertToDbButton.Enabled = true;
+        }
+
         private void PlayerOwnedGamesListBox_SelectedValueChanged(object sender, EventArgs e)
         {
             object selectedItem = playerOwnedGamesListBox.SelectedItem;
@@ -201,6 +262,9 @@ namespace IntegracjaSteamProjekt
             }
         }
 
+        /// <summary>
+        /// Asynchroniczna funkcja do dodawania danych profilu i posiadanych gier do bazy
+        /// </summary>
         private async Task AddToDbAsync()
         {
             MySqlConnection connection = new(Variables.ConnectionString);
@@ -221,13 +285,13 @@ namespace IntegracjaSteamProjekt
 
             query = "SELECT LAST_INSERT_ID();";
             command = new(query, connection);
-            int raport_id = Convert.ToInt32(await command.ExecuteScalarAsync());
+            int raportId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
             StringBuilder sCommand = new StringBuilder("INSERT INTO `owned_games` (`game_name`, `game_description`, `play_time`, `raport_id`) VALUES ");
             List<string> rows = new();
             foreach (var item in PlayerProfile.OwnedGames)
             {
-                rows.Add($"('{item.Name}', '{item.Description}','{item.PlayTime}', '{raport_id}')");
+                rows.Add($"('{item.Name}', '{item.Description}','{item.PlayTime}', '{raportId}')");
             }
             sCommand.Append(string.Join(",", rows));
             sCommand.Append(';');
@@ -236,6 +300,9 @@ namespace IntegracjaSteamProjekt
             await connection.CloseAsync();
         }
 
+        /// <summary>
+        /// Asynchroniczna funkcja do pobierania danych profilu z bazy danych
+        /// </summary>
         private async Task DownloadPlayerProfilesAsync()
         {
             MySqlConnection connection = new(Variables.ConnectionString);
@@ -252,6 +319,9 @@ namespace IntegracjaSteamProjekt
             await connection.CloseAsync();
         }
 
+        /// <summary>
+        /// Asynchroniczna funkcja do pobierania posiadanych gier gracza z bazy danych
+        /// </summary>
         private async Task DownloadOwnedGames(int raportId)
         {
             MySqlConnection connection = new(Variables.ConnectionString);
@@ -303,12 +373,12 @@ namespace IntegracjaSteamProjekt
             }
         }
 
-        private void steamIdTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        private void SteamIdTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            e.Handled = !char.IsDigit(e.KeyChar);
+            e.Handled = e.KeyChar != (char)8 && !char.IsDigit(e.KeyChar);
         }
 
-        private async void playerProfileGridView_SelectionChanged(object sender, EventArgs e)
+        private async void PlayerProfileGridView_SelectionChanged(object sender, EventArgs e)
         {
             int raportId = -1;
             var selected = playerProfileGridView.SelectedRows;
@@ -318,10 +388,11 @@ namespace IntegracjaSteamProjekt
                 raportId = value != DBNull.Value ? (int)value : -1;
             }
             await DownloadOwnedGames(raportId);
-            
-
         }
 
+        /// <summary>
+        /// Asynchroniczna funkcja do uploadowania pliku JSON do Google Drive
+        /// </summary>
         private async Task UploadToGoogleDriveAsync()
         {
             googleDriveLinkTextBox.Text = "Wysyłanie pliku...";
@@ -371,6 +442,19 @@ namespace IntegracjaSteamProjekt
             await service.Permissions.Create(permission, filesList.Files[0].Id).ExecuteAsync();
             filesList = await service.Files.List().ExecuteAsync();
             googleDriveLinkTextBox.Text = $"https://drive.google.com/file/d/{filesList.Files[0].Id}/view?usp=sharing";
+        }
+
+        private void SteamIdTextBox_TextChanged(object sender, EventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            if (textBox.Text.Length < 17)
+            {
+                searchButton.Enabled = false;
+            }
+            else
+            {
+                searchButton.Enabled = true;
+            }
         }
     }
 }

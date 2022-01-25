@@ -9,30 +9,35 @@ using Microsoft.Extensions.Hosting;
 
 namespace IntegracjaSteamProjekt
 {
+    /// <summary>
+    /// Klasa z typami startupu dla soapAPI
+    /// </summary>
     public class Startup
     {
         public static void ConfigureServices(IServiceCollection services)
         {
-            services.TryAddSingleton<ISampleService, SampleService>();
+            services.TryAddSingleton<ISoapApiService, SoapApiService>();
             services.AddMvc();
         }
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseSoapEndpoint<ISampleService>("/SoapAPI.asmx", new SoapEncoderOptions(), SoapSerializer.XmlSerializer);
+            app.UseSoapEndpoint<ISoapApiService>("/SoapAPI.asmx", new SoapEncoderOptions(), SoapSerializer.XmlSerializer);
         }
     }
-
+    /// <summary>
+    /// Klasa z typami startupu dla APIGateway
+    /// </summary>
     public class StartupGateway
     {
         public static void ConfigureServices(IServiceCollection services)
         {
             services.AddOcelot();
         }
-        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {

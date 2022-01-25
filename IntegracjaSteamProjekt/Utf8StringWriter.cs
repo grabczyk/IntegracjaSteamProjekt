@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace IntegracjaSteamProjekt
 {
+    /// <summary>
+    /// Zmodyfikowana klasa StringWritera w celu użycia kodowania UTF8 przy eksportowaniu do XML
+    /// </summary>
     class Utf8StringWriter : StringWriter
     {
         public override Encoding Encoding => Encoding.UTF8;

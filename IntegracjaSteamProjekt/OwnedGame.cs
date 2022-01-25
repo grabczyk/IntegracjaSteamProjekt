@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace IntegracjaSteamProjekt
+﻿namespace IntegracjaSteamProjekt
 {
+    /// <summary>
+    /// Klasa dla danych dotyczących gier, które posiada gracz
+    /// </summary>
     public class OwnedGame
     {
         public uint GameId { get; set; }

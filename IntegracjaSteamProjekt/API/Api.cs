@@ -8,14 +8,23 @@ using System.Threading.Tasks;
 
 namespace IntegracjaSteamProjekt
 {
+    /// <summary>
+    /// Klasa obsługująca usługi soapAPI i APIGateway
+    /// </summary>
     class Api
     {
-        public static IHostBuilder CreateHostBuilder(string[] args, int port, bool apiGatewayFlag)
+        /// <summary>
+        /// Statyczna funkcja budująca hosta API
+        /// </summary>
+        /// <param name="port">Port, na którym ma działać API</param>
+        /// <param name="apiGatewayFlag">Wartość bool określająca czy tworzony host to APIGateway</param>
+        /// <returns>Nowy host API</returns>
+        public static IHostBuilder CreateHostBuilder(int port, bool apiGatewayFlag)
         {
             IHostBuilder host;
             if (apiGatewayFlag)
             {
-                host = Host.CreateDefaultBuilder(args)
+                host = Host.CreateDefaultBuilder(Array.Empty<string>())
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<StartupGateway>()
@@ -28,7 +37,7 @@ namespace IntegracjaSteamProjekt
             }
             else
             {
-                host = Host.CreateDefaultBuilder(args)
+                host = Host.CreateDefaultBuilder(Array.Empty<string>())
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()
@@ -37,7 +46,10 @@ namespace IntegracjaSteamProjekt
             }
             return host;
         }
-
+        /// <summary>
+        /// Statyczna funkcja włączająca i wyłączająca soapAPI
+        /// </summary>
+        /// <param name="portNumber">Numer portu, na którym na działać soapAPI</param>
         public static void StartStopSoapApi(int portNumber)
         {
             Program.Form.soapApiStartButton.Enabled = false;
@@ -46,7 +58,7 @@ namespace IntegracjaSteamProjekt
             Program.SoapApiTask = Task.Run(async () =>
             {
                 bool running = true;
-                IHost soapApiHost = Api.CreateHostBuilder(Array.Empty<string>(), portNumber, false).Build();
+                IHost soapApiHost = Api.CreateHostBuilder(portNumber, false).Build();
                 await soapApiHost.StartAsync();
                 Program.Form.Context.Send(x => {
                     Program.Form.soapApiStateLabel.Text = "Running";
@@ -74,6 +86,10 @@ namespace IntegracjaSteamProjekt
             Program.Form.soapApiStopButton.Enabled = true;
         }
 
+        /// <summary>
+        /// Statyczna funkcja włączająca i wyłączająca APIGateway
+        /// </summary>
+        /// <param name="portNumber">Numer portu, na którym na działać APIGateway</param>
         public static void StartStopApiGateway(int portNumber)
         {
             Program.Form.apigatewayStartButton.Enabled = false;
@@ -82,7 +98,7 @@ namespace IntegracjaSteamProjekt
             Program.ApiGatewayTask = Task.Run(async () =>
             {
                 bool running = true;
-                IHost apiGatewayHost = Api.CreateHostBuilder(Array.Empty<string>(), portNumber, true).Build();
+                IHost apiGatewayHost = Api.CreateHostBuilder(portNumber, true).Build();
                 await apiGatewayHost.StartAsync();
             Program.Form.Context.Send(x => {
                 Program.Form.apiGatewayStateLabel.Text = "Running";

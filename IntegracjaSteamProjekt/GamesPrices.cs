@@ -1,6 +1,9 @@
 ﻿namespace IntegracjaSteamProjekt
 {
-    class Prices
+    /// <summary>
+    /// Klasa dla danych dotyczących cen gier
+    /// </summary>
+    class GamesPrices
     {
         public class Rootobject
         {

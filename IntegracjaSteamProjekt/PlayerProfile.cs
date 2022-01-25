@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace IntegracjaSteamProjekt
 {
+    /// <summary>
+    /// Klasa dla danych zawartych w profilu gracza
+    /// </summary>
     public class PlayerProfile
     {
         public ulong SteamId { get; set; }
@@ -25,7 +28,12 @@ namespace IntegracjaSteamProjekt
         public int OwnedGamesInitialValue { get; set; }
         public int OwnedGamesFinalValue { get; set; }
 
-          async public static Task<PlayerProfile> LoadDataAsync(ulong steamId)
+        /// <summary>
+        /// Asynchroniczna funkcja do pobierania danych profilu gracza
+        /// </summary>
+        /// <param name="steamId">SteamId gracza</param>
+        /// <returns>Obiekt klasy PlayerProfile z pobranymi danymi</returns>
+        public static async Task<PlayerProfile> LoadDataAsync(ulong steamId)
         {
             var webInterfaceFactory = new SteamWebInterfaceFactory(Variables.ApiKey);
             var steamUserInterface = webInterfaceFactory.CreateSteamWebInterface<SteamUser>(new HttpClient());
@@ -64,7 +72,7 @@ namespace IntegracjaSteamProjekt
                 response = rx.Match(response).Value;
                 if (!String.IsNullOrEmpty(response))
                 {
-                    Prices.Rootobject appDetails = JsonSerializer.Deserialize<Prices.Rootobject>(response);
+                    GamesPrices.Rootobject appDetails = JsonSerializer.Deserialize<GamesPrices.Rootobject>(response);
                     initialGamesvalue += appDetails.initial;
                     finalGamesvalue += appDetails.final;
                 }
@@ -101,9 +109,14 @@ namespace IntegracjaSteamProjekt
         {
         }
 
-        private async static Task<(string name, string description)> GetAppDetailsAsync(uint appId)
+        /// <summary>
+        /// Asynchroniczna funkcja pobierająca nazwe gry i jej opis
+        /// </summary>
+        /// <param name="appId">Identyfikator gry</param>
+        /// <returns>Tupla zawierająca nazwe gry i jej opis</returns>
+        private static async Task<(string name, string description)> GetAppDetailsAsync(uint appId)
         {
-            string name ="";
+            string name = "";
             string description = "";
             MySqlConnection connection = new(Variables.ConnectionString);
             await connection.OpenAsync();
