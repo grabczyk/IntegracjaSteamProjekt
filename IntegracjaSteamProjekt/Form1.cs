@@ -68,9 +68,21 @@ namespace IntegracjaSteamProjekt
             steamIdTextBox.Text = "Pobieranie danych...";
             steamIdTextBox.ForeColor = Color.Green;
             Application.DoEvents();
-            PlayerProfile = await PlayerProfile.LoadDataAsync(Convert.ToUInt64(steamId));
-            steamIdTextBox.Text = steamId;
-            steamIdTextBox.ForeColor = Color.Black;
+            try
+            {
+                PlayerProfile = await PlayerProfile.LoadDataAsync(Convert.ToUInt64(steamId));
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Wystąpił błąd przy pobieraniu danych!");
+                return;
+            }
+            finally
+            {
+                steamIdTextBox.Text = steamId;
+                steamIdTextBox.ForeColor = Color.Black;
+                searchButton.Enabled = true;
+            }
             EnableButtons();
             SetFormData();
             Application.DoEvents();
@@ -78,17 +90,40 @@ namespace IntegracjaSteamProjekt
 
         private async void InsertToDbButton_Click(object sender, EventArgs e)
         {
-            await AddToDbAsync();
+            try
+            {
+                await AddToDbAsync();
+                MessageBox.Show("Dodano profil gracza do bazy!");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Błąd podczas wysyłania danych do bazy!");
+            }
         }
 
         private async void DownloadFromDatabaseButton_Click(object sender, EventArgs e)
         {
-            await DownloadPlayerProfilesAsync();
+            try
+            {
+                await DownloadPlayerProfilesAsync();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Błąd podczas pobierania z bazy!");
+            }
         }
 
         private async void GoogleDriveButton_Click(object sender, EventArgs e)
         {
-            await UploadToGoogleDriveAsync();
+            try
+            {
+                await UploadToGoogleDriveAsync();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Błąd podczas wysyłania pliku do google Drive!");
+            }
+
         }
 
         /// <summary>
